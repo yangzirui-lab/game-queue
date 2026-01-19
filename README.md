@@ -18,7 +18,6 @@ A Node.js CLI tool to manage your Steam game backlog, using Git for version cont
 <!-- QUEUE_START -->
 | Game | Status | Notes |
 | :--- | :--- | :--- |
-| palworld | finished | - |
 | Cyberpunk 2077 | to-play | Need to finish Phantom Liberty |
 | 雾锁王国 | playing | - |
 <!-- QUEUE_END -->

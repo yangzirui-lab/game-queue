@@ -1,14 +1,6 @@
 {
   "games": [
     {
-      "name": "palworld",
-      "status": "finished",
-      "tags": [],
-      "id": "game-1768815209158",
-      "addedAt": "2026-01-19T09:33:29.158Z",
-      "lastUpdated": "2026-01-19T09:33:29.160Z"
-    },
-    {
       "name": "Cyberpunk 2077",
       "status": "to-play",
       "notes": "Need to finish Phantom Liberty",
