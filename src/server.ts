@@ -58,6 +58,16 @@ app.delete('/api/games/:id', async (req, res) => {
   }
 });
 
+// Sync with Git
+app.post('/api/git/sync', async (req, res) => {
+  try {
+    const result = await store.sync();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Git sync failed', details: (err as Error).message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Backend server running at http://localhost:${port}`);
 });

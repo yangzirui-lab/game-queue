@@ -4,12 +4,14 @@ import { SearchBar } from './components/SearchBar'
 import { AddGame } from './components/AddGame'
 import type { Game } from './types'
 import { AnimatePresence, motion } from 'framer-motion'
+import { GitBranch, Loader2 } from 'lucide-react'
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState(false)
 
   // Fetch games on mount
   useEffect(() => {
@@ -113,6 +115,21 @@ function App() {
     }
   }
 
+  const handleSync = () => {
+    setIsSyncing(true)
+    fetch('/api/git/sync', { method: 'POST' })
+      .then(res => res.json())
+      .then(() => {
+        setToast('Successfully synced with Git!')
+        setIsSyncing(false)
+      })
+      .catch(err => {
+        console.error('Failed to sync:', err)
+        setToast('Git sync failed. Check console.')
+        setIsSyncing(false)
+      })
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -156,6 +173,17 @@ function App() {
           {toast}
         </div>
       )}
+
+      <motion.button
+        className={`fab-sync ${isSyncing ? 'syncing' : ''}`}
+        onClick={handleSync}
+        disabled={isSyncing}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        title="Sync with Git"
+      >
+        {isSyncing ? <Loader2 className="animate-spin" size={24} /> : <GitBranch size={24} />}
+      </motion.button>
     </div>
   )
 }

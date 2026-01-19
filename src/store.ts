@@ -7,7 +7,7 @@ const DATA_FILE = path.join(process.cwd(), "games.json");
 export interface Game {
   id: string;
   name: string;
-  status: "to-play" | "playing" | "finished" | "dropped";
+  status: "to-play" | "backlog" | "playing" | "finished" | "dropped";
   addedAt: string;
   lastUpdated: string;
   notes?: string | undefined;
@@ -80,9 +80,18 @@ export class Store {
 
     if (startIndex === -1 || endIndex === -1) return;
 
+    const statusLabels: Record<string, string> = {
+      'to-play': 'Backlog',
+      'backlog': 'Backlog',
+      'playing': 'Playing',
+      'finished': 'Finished',
+      'dropped': 'Dropped'
+    };
+
     let table = "\n| Game | Status | Notes |\n| :--- | :--- | :--- |\n";
     games.forEach((g) => {
-      table += `| ${g.name} | ${g.status} | ${g.notes || "-"} |\n`;
+      const statusLabel = statusLabels[g.status] || g.status;
+      table += `| ${g.name} | ${statusLabel} | ${g.notes || "-"} |\n`;
     });
 
     const newContent =
@@ -91,6 +100,29 @@ export class Store {
       content.substring(endIndex);
 
     fs.writeFileSync(README_FILE, newContent);
+  }
+
+  async sync() {
+    this.updateReadme();
+    this.saveSync();
+    
+    try {
+      await git.add(DATA_FILE);
+      await git.add(path.join(process.cwd(), "README.md"));
+      
+      const status = await git.status();
+      if (status.staged.length > 0) {
+        await git.commit("Manual sync from web");
+        console.log("[Git] Manual commit complete");
+      }
+      
+      await git.push();
+      console.log("[Git] Push complete");
+      return { success: true };
+    } catch (err) {
+      console.error("[Git] Sync failed:", err);
+      throw err;
+    }
   }
 
   getGames() {
