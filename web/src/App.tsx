@@ -236,75 +236,76 @@ function App() {
           </div>
         ) : (
           <div>
-            {/* Tab Navigation */}
+            {/* Tab Navigation - iOS Style */}
             <div style={{
-              display: 'flex',
-              gap: '0.5rem',
+              display: 'inline-flex',
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '12px',
+              padding: '4px',
               marginBottom: '2rem',
-              borderBottom: '2px solid var(--card-border)',
-              paddingBottom: '0'
+              border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
               <button
                 onClick={() => setActiveTab('playing')}
                 style={{
-                  padding: '0.75rem 1.5rem',
-                  background: 'transparent',
+                  padding: '0.65rem 1.25rem',
+                  background: activeTab === 'playing' ? 'var(--status-playing)' : 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === 'playing' ? '2px solid var(--status-playing)' : '2px solid transparent',
-                  color: activeTab === 'playing' ? 'var(--status-playing)' : 'var(--text-secondary)',
+                  borderRadius: '10px',
+                  color: activeTab === 'playing' ? '#fff' : 'var(--text-secondary)',
                   cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: activeTab === 'playing' ? '600' : '400',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  transition: 'all 0.2s',
-                  marginBottom: '-2px'
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Play size={18} />
+                <Play size={16} />
                 Playing ({groupedGames.playing.length})
               </button>
               <button
                 onClick={() => setActiveTab('pending')}
                 style={{
-                  padding: '0.75rem 1.5rem',
-                  background: 'transparent',
+                  padding: '0.65rem 1.25rem',
+                  background: activeTab === 'pending' ? 'var(--status-backlog)' : 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === 'pending' ? '2px solid var(--status-backlog)' : '2px solid transparent',
-                  color: activeTab === 'pending' ? 'var(--status-backlog)' : 'var(--text-secondary)',
+                  borderRadius: '10px',
+                  color: activeTab === 'pending' ? '#fff' : 'var(--text-secondary)',
                   cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: activeTab === 'pending' ? '600' : '400',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  transition: 'all 0.2s',
-                  marginBottom: '-2px'
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Bookmark size={18} />
+                <Bookmark size={16} />
                 Pending ({groupedGames.pending.length})
               </button>
               <button
                 onClick={() => setActiveTab('completion')}
                 style={{
-                  padding: '0.75rem 1.5rem',
-                  background: 'transparent',
+                  padding: '0.65rem 1.25rem',
+                  background: activeTab === 'completion' ? 'var(--status-finished)' : 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === 'completion' ? '2px solid var(--status-finished)' : '2px solid transparent',
-                  color: activeTab === 'completion' ? 'var(--status-finished)' : 'var(--text-secondary)',
+                  borderRadius: '10px',
+                  color: activeTab === 'completion' ? '#fff' : 'var(--text-secondary)',
                   cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: activeTab === 'completion' ? '600' : '400',
+                  fontSize: '0.9rem',
+                  fontWeight: '500',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  transition: 'all 0.2s',
-                  marginBottom: '-2px'
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <CheckCircle size={18} />
+                <CheckCircle size={16} />
                 Completion ({groupedGames.completion.length})
               </button>
             </div>
