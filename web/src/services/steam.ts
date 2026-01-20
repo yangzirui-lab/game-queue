@@ -61,25 +61,12 @@ export class SteamService {
           .filter((item: any) => item.type === 'app') // 只要游戏，不要 DLC 等
           .slice(0, 10); // 限制返回 10 个结果
 
-        // 并行获取每个游戏的详细信息
+        // 并行获取每个游戏的评论统计
         const gamesWithDetails = await Promise.all(
           games.map(async (item: any) => {
-            const details = await this.getGameDetails(item.id);
-
-            let positivePercentage: number | null = null;
-            let totalReviews: number | null = null;
-
-            if (details?.recommendations?.total) {
-              totalReviews = details.recommendations.total;
-            }
-
-            // 计算好评率
-            if (details?.positive_reviews !== undefined && details?.negative_reviews !== undefined) {
-              const total = details.positive_reviews + details.negative_reviews;
-              if (total > 0) {
-                positivePercentage = Math.round((details.positive_reviews / total) * 100);
-              }
-            }
+            // 获取评论统计
+            const reviews = await this.getGameReviews(item.id);
+            console.log(`Game ${item.id} reviews:`, reviews);
 
             return {
               id: item.id,
@@ -87,8 +74,8 @@ export class SteamService {
               steamUrl: `https://store.steampowered.com/app/${item.id}`,
               coverImage: item.tiny_image || `https://cdn.cloudflare.steamstatic.com/steam/apps/${item.id}/capsule_sm_120.jpg`,
               tags: [], // Steam search API 不返回标签
-              positivePercentage,
-              totalReviews,
+              positivePercentage: reviews.positivePercentage,
+              totalReviews: reviews.totalReviews,
               averagePlaytime: null, // 游戏时长信息不在详情 API 中
             };
           })
@@ -109,7 +96,7 @@ export class SteamService {
     throw new Error('Steam 搜索失败，请稍后再试。');
   }
 
-  // 可选：获取游戏详情（如果需要更多信息）
+  // 获取游戏详情
   async getGameDetails(appId: number): Promise<any> {
     const detailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}&l=schinese&cc=CN`;
 
@@ -137,6 +124,48 @@ export class SteamService {
     }
 
     return null;
+  }
+
+  // 获取游戏评论统计
+  async getGameReviews(appId: number): Promise<{ positivePercentage: number | null; totalReviews: number | null }> {
+    const reviewsUrl = `https://store.steampowered.com/appreviews/${appId}?json=1&language=all&purchase_type=all&num_per_page=0`;
+
+    // 尝试多个代理
+    for (const proxy of CORS_PROXIES) {
+      try {
+        const proxyUrl = `${proxy}${encodeURIComponent(reviewsUrl)}`;
+        const response = await fetch(proxyUrl);
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = await response.json();
+
+        if (!data.query_summary) {
+          continue;
+        }
+
+        const { total_positive, total_negative, total_reviews } = data.query_summary;
+
+        let positivePercentage: number | null = null;
+        const totalReviews = total_reviews || null;
+
+        if (total_positive !== undefined && total_negative !== undefined) {
+          const total = total_positive + total_negative;
+          if (total > 0) {
+            positivePercentage = Math.round((total_positive / total) * 100);
+          }
+        }
+
+        return { positivePercentage, totalReviews };
+      } catch (error) {
+        console.error('Failed to fetch reviews from proxy:', error);
+        continue;
+      }
+    }
+
+    return { positivePercentage: null, totalReviews: null };
   }
 }
 
