@@ -1,6 +1,15 @@
 {
   "games": [
     {
+      "id": "1768927929101",
+      "name": "沉没之地",
+      "status": "pending",
+      "addedAt": "2026-01-20T16:52:09.101Z",
+      "lastUpdated": "2026-01-20T16:52:09.101Z",
+      "steamUrl": "https://store.steampowered.com/app/2080690",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2080690/capsule_231x87.jpg?t=1748457033"
+    },
+    {
       "id": "1768927818475",
       "name": "非生物因素",
       "status": "completion",
