@@ -97,9 +97,12 @@ function App() {
         const appId = parseInt(match[1])
 
         try {
+          // 只在缺少发布日期时才获取，因为发布日期不会变动
+          const needsReleaseDate = !game.releaseDate
+
           const [reviews, releaseInfo] = await Promise.all([
             steamService.getGameReviews(appId),
-            steamService.getGameReleaseDate(appId)
+            needsReleaseDate ? steamService.getGameReleaseDate(appId) : Promise.resolve({ releaseDate: game.releaseDate, comingSoon: game.comingSoon })
           ])
 
           // 如果获取到了数据，或者数据有变化时更新
@@ -108,7 +111,7 @@ function App() {
             (game.releaseDate === null || game.releaseDate === undefined) ||
             (reviews.positivePercentage !== game.positivePercentage) ||
             (reviews.totalReviews !== game.totalReviews) ||
-            (releaseInfo.releaseDate !== game.releaseDate)
+            (needsReleaseDate && releaseInfo.releaseDate !== game.releaseDate)
 
           if (needsUpdate && (reviews.positivePercentage !== null || reviews.totalReviews !== null || releaseInfo.releaseDate !== null)) {
             const updatedGame: Game = {
@@ -121,9 +124,23 @@ function App() {
             }
 
             // 更新本地状态
-            setGames(prevGames =>
-              prevGames.map(g => g.id === game.id ? updatedGame : g)
-            )
+            setGames(prevGames => {
+              const updatedGames = prevGames.map(g => g.id === game.id ? updatedGame : g)
+
+              // 如果获取到了新的发布日期，保存到 GitHub
+              if (needsReleaseDate && releaseInfo.releaseDate) {
+                githubService.updateGames(
+                  { games: updatedGames },
+                  `Update game info: ${game.name}`
+                ).then(() => {
+                  console.log(`已保存 ${game.name} 的发布日期到 GitHub`)
+                }).catch((err) => {
+                  console.error(`保存 ${game.name} 发布日期失败:`, err)
+                })
+              }
+
+              return updatedGames
+            })
 
             console.log(`已更新 ${game.name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}`)
           }
