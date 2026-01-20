@@ -352,12 +352,14 @@ body {
 .delete-btn-external {
   background: transparent;
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 50%;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0 0.75rem;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
+  justify-content: center;
   transition: all 0.2s;
   opacity: 0;
   pointer-events: none;

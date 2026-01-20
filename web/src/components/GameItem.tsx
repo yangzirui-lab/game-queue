@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import type { Game, GameStatus } from "../types";
-import { Clock, Calendar, CheckCircle, Play, Bookmark, ExternalLink } from "lucide-react";
-import { format } from "date-fns";
+import { CheckCircle, Play, Bookmark, ExternalLink } from "lucide-react";
 
 interface GameItemProps {
   game: Game;
@@ -68,7 +67,6 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
         display: 'flex',
         flexDirection: 'row',
         padding: '0',
-        minHeight: '120px',
         overflow: 'hidden'
       }}
     >
@@ -79,7 +77,6 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
           style={{
             width: '320px',
             minWidth: '320px',
-            height: '120px',
             objectFit: 'cover',
             borderRadius: '8px 0 0 8px',
           }}
@@ -92,7 +89,6 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
           style={{
             width: '320px',
             minWidth: '320px',
-            height: '120px',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             borderRadius: '8px 0 0 8px',
             display: 'flex',
@@ -166,23 +162,12 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '1.5rem',
+          gap: '0.5rem',
           fontSize: '0.85rem',
-          color: 'var(--text-secondary)',
-          flexWrap: 'wrap'
+          color: 'var(--text-secondary)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Calendar size={14} />
-            <span>Added: {format(new Date(game.addedAt), 'MMM dd, yyyy')}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Clock size={14} />
-            <span>Updated: {format(new Date(game.lastUpdated), 'MMM dd, HH:mm')}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-            {statusIcons[game.status]}
-            <span style={{ textTransform: 'capitalize' }}>{game.status}</span>
-          </div>
+          {statusIcons[game.status]}
+          <span style={{ textTransform: 'capitalize' }}>{game.status}</span>
         </div>
       {isEditingSteamUrl && (
         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

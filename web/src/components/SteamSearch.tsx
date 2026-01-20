@@ -72,9 +72,10 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
         maxWidth: '700px',
         width: '90%',
         maxHeight: '80vh',
-        overflow: 'auto',
         position: 'relative',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        flexDirection: 'column'
       }}>
         <button
           onClick={onClose}
