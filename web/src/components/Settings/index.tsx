@@ -14,6 +14,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const FIXED_OWNER = 'yangzirui-lab';
   const FIXED_REPO = 'game-queue';
 
   useEffect(() => {
@@ -35,17 +36,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     setErrorMessage('');
 
     try {
-      // 获取当前用户信息
-      const owner = await githubService.getCurrentUser(token);
-      if (!owner) {
-        setTestStatus('error');
-        setErrorMessage('无法获取用户信息。请检查 Token 是否有效。');
-        setIsTesting(false);
-        return;
-      }
-
-      // 临时保存配置以进行测试
-      const tempConfig = { token, owner, repo: FIXED_REPO };
+      // 使用写死的用户名
+      const tempConfig = { token, owner: FIXED_OWNER, repo: FIXED_REPO };
       githubService.saveConfig(tempConfig);
 
       const success = await githubService.testConnection();
@@ -53,7 +45,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
         setTestStatus('success');
       } else {
         setTestStatus('error');
-        setErrorMessage(`连接失败。仓库 ${owner}/${FIXED_REPO} 不存在或无法访问。`);
+        setErrorMessage(`连接失败。仓库 ${FIXED_OWNER}/${FIXED_REPO} 不存在或无法访问。请检查 Token 权限。`);
       }
     } catch (error) {
       setTestStatus('error');
@@ -73,16 +65,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     setErrorMessage('');
 
     try {
-      // 获取当前用户信息
-      const owner = await githubService.getCurrentUser(token);
-      if (!owner) {
-        setErrorMessage('无法获取用户信息。请检查 Token 是否有效。');
-        setTestStatus('error');
-        setIsSaving(false);
-        return;
-      }
-
-      githubService.saveConfig({ token, owner, repo: FIXED_REPO });
+      // 使用写死的用户名
+      githubService.saveConfig({ token, owner: FIXED_OWNER, repo: FIXED_REPO });
 
       // 测试连接
       const success = await githubService.testConnection();
@@ -92,7 +76,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           onClose();
         }, 1000);
       } else {
-        setErrorMessage(`配置已保存，但仓库 ${owner}/${FIXED_REPO} 不存在或无法访问。`);
+        setErrorMessage(`配置已保存，但仓库 ${FIXED_OWNER}/${FIXED_REPO} 不存在或无法访问。请检查 Token 权限。`);
         setTestStatus('error');
       }
     } catch (error) {
@@ -201,8 +185,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
             <strong>配置步骤：</strong>
             <ul>
               <li>创建一个 GitHub Personal Access Token（需要 <code>repo</code> 权限）</li>
-              <li>系统会自动获取您的 GitHub 用户名</li>
-              <li>游戏数据将保存到 <code>game-queue</code> 仓库</li>
+              <li>游戏数据将保存到 <code>yangzirui-lab/game-queue</code> 仓库</li>
               <li>点击"测试连接"验证配置是否正确</li>
               <li>如果仓库不存在，需要先在 GitHub 创建 <code>game-queue</code> 仓库</li>
             </ul>
