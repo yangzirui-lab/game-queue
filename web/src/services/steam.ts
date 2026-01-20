@@ -117,6 +117,7 @@ export class SteamService {
             averagePlaytime: null,
             releaseDate: null, // 后续异步加载
             comingSoon: null, // 后续异步加载
+            isEarlyAccess: null, // 后续异步加载
           }));
 
         console.log(`Successfully found ${games.length} games`);
