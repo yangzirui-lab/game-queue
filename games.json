@@ -33,6 +33,18 @@
       "addedAt": "2026-01-19T17:19:59.193Z",
       "lastUpdated": "2026-01-20T06:43:44.013Z",
       "steamUrl": "https://store.steampowered.com/app/730/"
+    },
+    {
+      "name": "艾尔登法环",
+      "status": "backlog",
+      "tags": [
+        "Controller Support"
+      ],
+      "steamUrl": "https://store.steampowered.com/app/1245620/",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/capsule_231x87.jpg",
+      "id": "game-1768891770945",
+      "addedAt": "2026-01-20T06:49:30.945Z",
+      "lastUpdated": "2026-01-20T06:49:30.945Z"
     }
   ],
   "config": {
