@@ -1,1 +1,7 @@
 node_modules
+
+# IDE配置
+.idea/
+
+# Claude Code配置
+.claude/
