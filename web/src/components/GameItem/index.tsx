@@ -15,6 +15,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
   const itemRef = useRef<HTMLDivElement>(null);
   const [isEditingSteamUrl, setIsEditingSteamUrl] = useState(false);
   const [steamUrlInput, setSteamUrlInput] = useState(game.steamUrl || "");
+  const [coverError, setCoverError] = useState(false);
 
   useEffect(() => {
     if (isHighlighted && itemRef.current) {
@@ -59,20 +60,23 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
       </button>
 
       <div className={styles.gameWrapper}>
-        {game.coverImage ? (
-          <img
-            src={game.coverImage}
-            alt={game.name}
-            className={styles.gameCover}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className={styles.gameCoverPlaceholder}>
-            {game.name.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <div className={styles.gameCoverContainer}> 
+          {game.coverImage && !coverError ? (
+            <img
+              src={game.coverImage}
+              alt={game.name}
+              className={styles.gameCover}
+              onError={() => {
+                setCoverError(true);
+              }}
+              onLoad={() => setCoverError(false)}
+            />
+          ) : (
+            <div className={styles.gameCoverPlaceholder}>
+              {game.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
         <div className={styles.gameContent}>
           <div className={styles.gameHeader}>
             <div className={styles.gameTitleArea}>

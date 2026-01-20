@@ -7,7 +7,6 @@
   gap: 0.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   scroll-margin-top: 100px;
-  min-height: 120.5px;
   position: relative; // Moved from inline style for better structure
 
   &:hover {
@@ -56,6 +55,7 @@
   }
 
   .gameWrapper {
+    margin: auto 0;
     display: flex;
     flex-direction: row;
     padding: 0;
@@ -64,24 +64,32 @@
     width: 100%;
   }
 
-  .gameCover {
+  .gameCoverContainer {
     width: 320px;
-    min-width: 320px;
-    object-fit: cover;
+    height: 124px;
     border-radius: 1rem 0 0 1rem;
-  }
+    overflow: hidden;
 
-  .gameCoverPlaceholder {
-    width: 320px;
-    min-width: 320px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 1rem 0 0 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    color: rgba(255, 255, 255, 0.3);
-    font-weight: bold;
+    .gameCover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 1rem 0 0 1rem;
+      font-size: 0;
+    }
+
+    .gameCoverPlaceholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 1rem 0 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: rgba(255, 255, 255, 0.3);
+      font-weight: bold;
+    }
   }
 
   .gameContent {
@@ -159,9 +167,11 @@
     &.high {
       color: #66c0f4;
     }
+
     &.medium {
       color: #ffa500;
     }
+
     &.low {
       color: #a0a0a0;
     }
@@ -303,9 +313,11 @@
   0% {
     box-shadow: 0 0 0 0px var(--accent-glow);
   }
+
   70% {
     box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
   }
