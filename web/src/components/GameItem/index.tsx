@@ -119,6 +119,7 @@ export const GameItem: React.FC<GameItemProps> = ({
           ) : (
             <div className={styles.gameCoverPlaceholder}>{game.name.charAt(0).toUpperCase()}</div>
           )}
+          {game.isEarlyAccess && <div className={styles.earlyAccessBadge}>抢先体验</div>}
         </div>
         <div className={styles.gameContent}>
           <div className={styles.gameHeader}>
@@ -127,7 +128,6 @@ export const GameItem: React.FC<GameItemProps> = ({
                 <a href="#" onClick={handleGameNameClick} className={styles.gameNameLink}>
                   {game.name}
                 </a>
-                {game.isEarlyAccess && <span className={styles.earlyAccessBadge}>抢先体验</span>}
               </div>
 
               <div className={styles.gameMeta}>

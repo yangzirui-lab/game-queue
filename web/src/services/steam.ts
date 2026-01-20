@@ -184,6 +184,12 @@ export class SteamService {
     // 检查是否为抢先体验（category id = 29）
     const isEarlyAccess = details.categories?.some((cat) => cat.id === 29) || false
 
+    // 调试日志
+    console.log(
+      `Game ${appId} - isEarlyAccess: ${isEarlyAccess}, categories:`,
+      details.categories?.map((c) => `${c.id}:${c.description}`).join(', ')
+    )
+
     return {
       releaseDate: details.release_date?.date || null,
       comingSoon: details.release_date?.coming_soon || null,

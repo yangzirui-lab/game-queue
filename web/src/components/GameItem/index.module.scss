@@ -65,6 +65,7 @@
   }
 
   .gameCoverContainer {
+    position: relative;
     width: 320px;
     height: 124px;
     border-radius: 1rem 0 0 1rem;
@@ -140,17 +141,20 @@
   }
 
   .earlyAccessBadge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0.5rem 0.875rem;
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
     color: white;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 1rem 0 0.75rem 0;
     white-space: nowrap;
-    flex-shrink: 0;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.5);
+    z-index: 5;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 
   .gameMeta {
