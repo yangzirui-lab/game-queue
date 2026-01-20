@@ -1,6 +1,15 @@
 {
   "games": [
     {
+      "id": "1768898227039",
+      "name": "Voyagers of Nera",
+      "status": "pending",
+      "addedAt": "2026-01-20T08:37:07.039Z",
+      "lastUpdated": "2026-01-20T08:37:07.040Z",
+      "steamUrl": "https://store.steampowered.com/app/2686630",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2686630/90908cb2383da89fe8eafba9f246e14189b6139d/capsule_231x87.jpg?t=1765842475"
+    },
+    {
       "id": "1768898185831",
       "name": "死域Rogue",
       "status": "pending",
