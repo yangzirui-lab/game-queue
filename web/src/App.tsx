@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { GameItem } from './components/GameItem'
 import { SearchBar } from './components/SearchBar'
-import { AddGame } from './components/AddGame'
 import { SteamSearch } from './components/SteamSearch'
 import { Settings } from './components/Settings'
 import type { Game } from './types'
@@ -74,41 +73,6 @@ function App() {
       g.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [sortedGames, searchTerm])
-
-  const handleAddGame = async (name: string, steamUrl?: string) => {
-    const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase())
-    if (existing) {
-      setToast(`"${name}" 已经在队列中！`)
-      setHighlightId(existing.id)
-      return
-    }
-
-    const newGame: Game = {
-      id: Date.now().toString(),
-      name,
-      status: 'backlog',
-      addedAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      steamUrl
-    }
-
-    try {
-      const updatedGames = [newGame, ...games]
-      setGames(updatedGames)
-
-      await githubService.updateGames(
-        { games: updatedGames },
-        `Add game via web: ${name}`
-      )
-
-      setToast(`添加了 "${name}"`)
-      setHighlightId(newGame.id)
-    } catch (err) {
-      console.error('Failed to add game:', err)
-      setToast('添加游戏失败')
-      setGames(games) // 回滚
-    }
-  }
 
   const handleAddGameFromSteam = async (name: string, steamUrl: string, coverImage: string, _tags: string[]) => {
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase())
@@ -260,8 +224,6 @@ function App() {
       </header>
 
       <main>
-        <AddGame onAdd={handleAddGame} />
-
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
             <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto' }} />
