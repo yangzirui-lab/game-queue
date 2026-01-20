@@ -5,8 +5,6 @@
   "description": "游戏待玩队列",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' ts-node src/index.ts",
-    "server": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' ts-node src/server.ts",
     "web": "git pull && concurrently \"npm run server\" \"cd web && npm run dev\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

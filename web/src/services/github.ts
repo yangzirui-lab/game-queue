@@ -118,7 +118,7 @@ export class GitHubService {
           const data = await currentFile.json();
           sha = data.sha;
         }
-      } catch (error) {
+      } catch {
         // File might not exist yet, that's okay
         console.log('File does not exist yet, will create new file');
       }
