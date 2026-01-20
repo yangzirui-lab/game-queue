@@ -150,23 +150,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {detectedOwner && (
-            <div className={styles.infoBox}>
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>GitHub 用户：</span>
-                <span className={styles.infoValue}>{detectedOwner}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>仓库名称：</span>
-                <span className={styles.infoValue}>{FIXED_REPO}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>完整路径：</span>
-                <span className={styles.infoValue}>{detectedOwner}/{FIXED_REPO}</span>
-              </div>
-            </div>
-          )}
-
           {errorMessage && (
             <div className={styles.errorBox}>
               {errorMessage}
@@ -221,14 +204,13 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           </div>
 
           <div className={styles.instructions}>
-            <strong>使用说明：</strong>
+            <strong>配置步骤：</strong>
             <ul>
               <li>创建一个 GitHub Personal Access Token（需要 <code>repo</code> 权限）</li>
               <li>系统会自动获取您的 GitHub 用户名</li>
               <li>游戏数据将保存到 <code>game-queue</code> 仓库</li>
               <li>点击"测试连接"验证配置是否正确</li>
               <li>如果仓库不存在，需要先在 GitHub 创建 <code>game-queue</code> 仓库</li>
-              <li>配置保存在浏览器本地，不会上传到服务器</li>
             </ul>
           </div>
         </div>
