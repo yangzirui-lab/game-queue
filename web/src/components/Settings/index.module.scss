@@ -72,6 +72,34 @@
         }
       }
 
+      .infoBox {
+        padding: 1rem;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .infoRow {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+
+          .infoLabel {
+            color: #999;
+            min-width: 90px;
+          }
+
+          .infoValue {
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+          }
+        }
+      }
+
       .errorBox {
         padding: 0.75rem;
         background: #ff4444;

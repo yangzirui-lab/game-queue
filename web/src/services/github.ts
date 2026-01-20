@@ -150,6 +150,27 @@ export class GitHubService {
     }
   }
 
+  async getCurrentUser(token: string): Promise<string | null> {
+    try {
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.login;
+    } catch (error) {
+      console.error('Failed to get current user:', error);
+      return null;
+    }
+  }
+
   async testConnection(): Promise<boolean> {
     if (!this.isConfigured()) {
       return false;

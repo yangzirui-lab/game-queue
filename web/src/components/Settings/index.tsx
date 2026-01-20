@@ -9,25 +9,25 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [token, setToken] = useState('');
-  const [owner, setOwner] = useState('');
-  const [repo, setRepo] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [detectedOwner, setDetectedOwner] = useState('');
+
+  const FIXED_REPO = 'game-queue';
 
   useEffect(() => {
     const config = githubService.getConfig();
     if (config) {
       setToken(config.token);
-      setOwner(config.owner);
-      setRepo(config.repo);
+      setDetectedOwner(config.owner);
     }
   }, []);
 
   const handleTest = async () => {
-    if (!token || !owner || !repo) {
-      setErrorMessage('请填写所有字段');
+    if (!token) {
+      setErrorMessage('请填写 GitHub Token');
       setTestStatus('error');
       return;
     }
@@ -36,17 +36,28 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     setTestStatus('idle');
     setErrorMessage('');
 
-    // 临时保存配置以进行测试
-    const tempConfig = { token, owner, repo };
-    githubService.saveConfig(tempConfig);
-
     try {
+      // 获取当前用户信息
+      const owner = await githubService.getCurrentUser(token);
+      if (!owner) {
+        setTestStatus('error');
+        setErrorMessage('无法获取用户信息。请检查 Token 是否有效。');
+        setIsTesting(false);
+        return;
+      }
+
+      setDetectedOwner(owner);
+
+      // 临时保存配置以进行测试
+      const tempConfig = { token, owner, repo: FIXED_REPO };
+      githubService.saveConfig(tempConfig);
+
       const success = await githubService.testConnection();
       if (success) {
         setTestStatus('success');
       } else {
         setTestStatus('error');
-        setErrorMessage('连接失败。请检查 Token 和仓库信息是否正确。');
+        setErrorMessage(`连接失败。仓库 ${owner}/${FIXED_REPO} 不存在或无法访问。`);
       }
     } catch (error) {
       setTestStatus('error');
@@ -57,8 +68,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   };
 
   const handleSave = async () => {
-    if (!token || !owner || !repo) {
-      setErrorMessage('请填写所有字段');
+    if (!token) {
+      setErrorMessage('请填写 GitHub Token');
       return;
     }
 
@@ -66,7 +77,18 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     setErrorMessage('');
 
     try {
-      githubService.saveConfig({ token, owner, repo });
+      // 获取当前用户信息
+      const owner = await githubService.getCurrentUser(token);
+      if (!owner) {
+        setErrorMessage('无法获取用户信息。请检查 Token 是否有效。');
+        setTestStatus('error');
+        setIsSaving(false);
+        return;
+      }
+
+      setDetectedOwner(owner);
+
+      githubService.saveConfig({ token, owner, repo: FIXED_REPO });
 
       // 测试连接
       const success = await githubService.testConnection();
@@ -76,7 +98,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           onClose();
         }, 1000);
       } else {
-        setErrorMessage('配置已保存，但连接测试失败。请检查配置是否正确。');
+        setErrorMessage(`配置已保存，但仓库 ${owner}/${FIXED_REPO} 不存在或无法访问。`);
         setTestStatus('error');
       }
     } catch (error) {
@@ -114,6 +136,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
               value={token}
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={handleKeyDown}
+              autoFocus
             />
             <div className={styles.helpText}>
               需要 <code>repo</code> 权限。
@@ -127,33 +150,22 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
             </div>
           </div>
 
-          <div>
-            <label className={styles.label}>
-              仓库所有者（用户名或组织名）
-            </label>
-            <input
-              type="text"
-              className={styles.inputPrimary}
-              placeholder="your-username"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
-
-          <div>
-            <label className={styles.label}>
-              仓库名称
-            </label>
-            <input
-              type="text"
-              className={styles.inputPrimary}
-              placeholder="game-queue"
-              value={repo}
-              onChange={(e) => setRepo(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
+          {detectedOwner && (
+            <div className={styles.infoBox}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>GitHub 用户：</span>
+                <span className={styles.infoValue}>{detectedOwner}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>仓库名称：</span>
+                <span className={styles.infoValue}>{FIXED_REPO}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>完整路径：</span>
+                <span className={styles.infoValue}>{detectedOwner}/{FIXED_REPO}</span>
+              </div>
+            </div>
+          )}
 
           {errorMessage && (
             <div className={styles.errorBox}>
@@ -171,7 +183,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           <div className={styles.actions}>
             <button
               onClick={handleTest}
-              disabled={isTesting || !token || !owner || !repo}
+              disabled={isTesting || !token}
               className={styles.btnTest}
             >
               {isTesting ? (
@@ -191,7 +203,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
 
             <button
               onClick={handleSave}
-              disabled={isSaving || !token || !owner || !repo}
+              disabled={isSaving || !token}
               className={styles.btnSave}
             >
               {isSaving ? (
@@ -212,10 +224,11 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
             <strong>使用说明：</strong>
             <ul>
               <li>创建一个 GitHub Personal Access Token（需要 <code>repo</code> 权限）</li>
-              <li>填写您的 GitHub 用户名和仓库名称</li>
+              <li>系统会自动获取您的 GitHub 用户名</li>
+              <li>游戏数据将保存到 <code>game-queue</code> 仓库</li>
               <li>点击"测试连接"验证配置是否正确</li>
+              <li>如果仓库不存在，需要先在 GitHub 创建 <code>game-queue</code> 仓库</li>
               <li>配置保存在浏览器本地，不会上传到服务器</li>
-              <li>所有游戏数据将保存到 GitHub 仓库的 <code>games.json</code> 文件</li>
             </ul>
           </div>
         </div>
