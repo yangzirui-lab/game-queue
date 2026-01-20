@@ -33,6 +33,18 @@
       "addedAt": "2026-01-19T17:19:59.193Z",
       "lastUpdated": "2026-01-20T06:43:44.013Z",
       "steamUrl": "https://store.steampowered.com/app/730/"
+    },
+    {
+      "name": "雾锁王国 (Enshrouded)",
+      "status": "backlog",
+      "tags": [
+        "Controller Support"
+      ],
+      "steamUrl": "https://store.steampowered.com/app/1203620/",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1203620/fedcde67022995e7946efa91f69d0f12e4ba52ec/capsule_231x87.jpg?t=1765290696",
+      "id": "game-1768892503233",
+      "addedAt": "2026-01-20T07:01:43.233Z",
+      "lastUpdated": "2026-01-20T07:01:43.233Z"
     }
   ],
   "config": {
