@@ -1,6 +1,17 @@
 {
   "games": [
     {
+      "id": "1768923219470",
+      "name": "永恒天空",
+      "status": "pending",
+      "addedAt": "2026-01-20T15:33:39.470Z",
+      "lastUpdated": "2026-01-20T15:33:39.470Z",
+      "steamUrl": "https://store.steampowered.com/app/1641960",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1641960/03f678c4e5fa43dbf166892179c907e05cfe3fc2/capsule_231x87_schinese.jpg?t=1768834406",
+      "positivePercentage": 80,
+      "totalReviews": 8030
+    },
+    {
       "id": "1768923143796",
       "name": "幸福工厂",
       "status": "pending",
