@@ -109,7 +109,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
       )}
       <div style={{
         flex: 1,
-        padding: '1rem 1.25rem',
+        padding: '1rem 0.75rem 1rem 1rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -147,7 +147,6 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
               <div style={{
                 marginTop: '0.25rem',
                 fontSize: '0.8rem',
-                paddingLeft: '0.25rem',
                 display: 'flex',
                 gap: '0.75rem',
                 alignItems: 'center'
