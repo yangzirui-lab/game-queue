@@ -87,6 +87,8 @@ function App() {
         })
       }
 
+      let hasAnyUpdate = false
+
       for (const game of gamesToRefresh) {
         if (!game.steamUrl) continue
 
@@ -131,9 +133,11 @@ function App() {
               releaseInfo.releaseDate !== null ||
               releaseInfo.isEarlyAccess !== null)
           ) {
+            hasAnyUpdate = true
+
             // 更新本地状态
-            setGames((prevGames) => {
-              const updatedGames = prevGames.map((g) => {
+            setGames((prevGames) =>
+              prevGames.map((g) => {
                 if (g.id === game.id) {
                   // 使用最新的游戏状态，只更新好评率相关字段
                   return {
@@ -148,24 +152,7 @@ function App() {
                 }
                 return g
               })
-
-              // 如果获取到了新的发布信息，保存到 GitHub
-              if (
-                needsReleaseInfo &&
-                (releaseInfo.releaseDate || releaseInfo.isEarlyAccess !== null)
-              ) {
-                githubService
-                  .updateGames({ games: updatedGames }, `Update game info: ${game.name}`)
-                  .then(() => {
-                    console.log(`已保存 ${game.name} 的游戏信息到 GitHub`)
-                  })
-                  .catch((err) => {
-                    console.error(`保存 ${game.name} 游戏信息失败:`, err)
-                  })
-              }
-
-              return updatedGames
-            })
+            )
 
             console.log(
               `已更新 ${game.name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}`
@@ -180,6 +167,20 @@ function App() {
       }
 
       console.log('好评率刷新完成')
+
+      // 所有游戏刷新完成后，统一保存一次到 GitHub
+      if (hasAnyUpdate) {
+        try {
+          const finalGames = gamesRef.current
+          await githubService.updateGames(
+            { games: finalGames },
+            'Update games info after refresh'
+          )
+          console.log('已保存所有游戏信息到 GitHub')
+        } catch (err) {
+          console.error('保存游戏信息到 GitHub 失败:', err)
+        }
+      }
     }
 
     // 延迟2秒后进行首次刷新，优先处理缺少好评率的游戏
