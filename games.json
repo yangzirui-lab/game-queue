@@ -1,6 +1,15 @@
 {
   "games": [
     {
+      "id": "1768907794742",
+      "name": "深海迷航2",
+      "status": "pending",
+      "addedAt": "2026-01-20T11:16:34.742Z",
+      "lastUpdated": "2026-01-20T11:16:34.742Z",
+      "steamUrl": "https://store.steampowered.com/app/1962700",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1962700/a5668b4e7176e657e2f1c70667df989ba27f64b5/capsule_231x87.jpg?t=1767836238"
+    },
+    {
       "id": "1768901475672",
       "name": "人渣",
       "status": "pending",
