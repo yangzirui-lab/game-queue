@@ -1,6 +1,6 @@
 .gameCard {
   background: var(--panel-bg);
-  border: 1px solid var(--card-border);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
@@ -11,7 +11,7 @@
   position: relative; // Moved from inline style for better structure
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px);
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
 
@@ -30,14 +30,14 @@
 
   .deleteBtnAbsolute {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--card-border);
+    top: -0.5rem;
+    right: -0.5rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid var(--card-border);
     border-radius: 50%;
     color: var(--text-secondary);
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -45,13 +45,13 @@
     transition: all 0.2s;
     opacity: 0;
     z-index: 10;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
 
     &:hover {
       background: var(--status-dropped);
       color: white;
       border-color: var(--status-dropped);
-      transform: scale(1.1);
+      transform: scale(1.15);
     }
   }
 
@@ -68,14 +68,14 @@
     width: 320px;
     min-width: 320px;
     object-fit: cover;
-    border-radius: 8px 0 0 8px;
+    border-radius: 1rem 0 0 1rem;
   }
 
   .gameCoverPlaceholder {
     width: 320px;
     min-width: 320px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 8px 0 0 8px;
+    border-radius: 1rem 0 0 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -104,12 +104,16 @@
   .gameTitleArea {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .gameTitleRow {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    width: 100%;
   }
 
   .gameNameLink {
@@ -128,18 +132,39 @@
   }
 
   .gameMeta {
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    padding-left: 0.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    padding-left: 0;
     display: flex;
     gap: 0.75rem;
     align-items: center;
   }
 
   .metaRating {
-    &.high { color: #66c0f4; }
-    &.medium { color: #ffa500; }
-    &.low { color: #999; }
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ratingPercentage {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+
+    &.high {
+      color: #66c0f4;
+    }
+    &.medium {
+      color: #ffa500;
+    }
+    &.low {
+      color: #a0a0a0;
+    }
+  }
+
+  .reviewCount {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
   }
 
   .metaPlaceholder {
@@ -158,16 +183,45 @@
     color: var(--text-primary);
     border: 1px solid var(--card-border);
     border-radius: 0.5rem;
-    padding: 0.5rem 0.5rem;
-    padding-right: 1.5rem;
+    padding: 0.5rem 0.75rem;
+    padding-right: 2rem;
     font-size: 0.875rem;
+    font-weight: 500;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
+    min-width: 120px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.5rem center;
     background-size: 1rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    option {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 0.5rem;
+      font-weight: 500;
+
+      &:hover {
+        background: #334155;
+      }
+
+      &:checked {
+        background: #334155;
+      }
+    }
   }
 
   .steamUrlEditRow {

@@ -54,3 +54,24 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* 优化原生 select 下拉框样式 */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  padding: 8px 12px;
+}
+
+select option:hover {
+  background-color: #334155;
+}
+
+select option:checked,
+select option:focus {
+  background-color: #475569;
+  color: #fff;
+}
+

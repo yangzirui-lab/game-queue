@@ -1,5 +1,14 @@
 .app {
   width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
 
   .header {
     display: flex;
@@ -14,7 +23,7 @@
     padding: 1rem 0;
 
     h1 {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: 700;
       background: linear-gradient(to right, #60a5fa, #a855f7);
       -webkit-background-clip: text;
@@ -39,6 +48,9 @@
     white-space: nowrap;
     font-size: 0.9rem;
     font-weight: 500;
+    height: 38px;
+    display: flex;
+    align-items: center;
   }
 
   .btnSettings {
@@ -51,6 +63,7 @@
     white-space: nowrap;
     font-size: 0.9rem;
     font-weight: 500;
+    height: 38px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -72,18 +85,19 @@
 
   .tabNav {
     display: inline-flex;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50px;
+    padding: 0;
     margin-bottom: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    overflow: hidden;
   }
 
   .tabBtn {
-    padding: 0.65rem 1.25rem;
+    padding: 0.65rem 1.5rem;
     background: transparent;
     border: none;
-    border-radius: 10px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 0.9rem;
@@ -91,8 +105,17 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
+    position: relative;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    &:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.05);
+    }
 
     &.active {
       color: #fff;
@@ -109,6 +132,12 @@
     &.activeCompletion {
       background: var(--status-completion);
     }
+  }
+
+  .gameList {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
   }
 
   .gameItemWrapper {

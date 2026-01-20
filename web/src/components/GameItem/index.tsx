@@ -90,12 +90,17 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
               
               <div className={styles.gameMeta}>
                 {game.positivePercentage !== undefined && game.totalReviews !== undefined ? (
-                    <span className={classNames(styles.metaRating, {
+                  <span className={styles.metaRating}>
+                    <span className={classNames(styles.ratingPercentage, {
                       [styles.high]: game.positivePercentage >= 80,
                       [styles.medium]: game.positivePercentage >= 60 && game.positivePercentage < 80,
                       [styles.low]: game.positivePercentage < 60
                     })}>
-                    好评率-{game.positivePercentage}%({game.totalReviews?.toLocaleString()}评论数)
+                      {game.positivePercentage}% 好评
+                    </span>
+                    <span className={styles.reviewCount}>
+                      {game.totalReviews?.toLocaleString()} 条评论
+                    </span>
                   </span>
                 ) : (
                   <span className={styles.metaPlaceholder}>&nbsp;</span>

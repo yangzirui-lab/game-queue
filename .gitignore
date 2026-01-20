@@ -5,3 +5,6 @@ node_modules
 
 # Claude Code配置
 .claude/
+
+# 使用 npm，忽略 yarn
+yarn.lock
