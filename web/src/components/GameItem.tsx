@@ -1,14 +1,15 @@
 import React, { useRef, useEffect, useState } from "react";
 import type { Game, GameStatus } from "../types";
-import { ExternalLink } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface GameItemProps {
   game: Game;
   onUpdate: (id: string, updates: Partial<Game>) => void;
+  onDelete: (id: string) => void;
   isHighlighted: boolean;
 }
 
-export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighted }) => {
+export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, isHighlighted }) => {
   const itemRef = useRef<HTMLDivElement>(null);
   const [isEditingSteamUrl, setIsEditingSteamUrl] = useState(false);
   const [steamUrlInput, setSteamUrlInput] = useState(game.steamUrl || "");
@@ -19,25 +20,11 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
     }
   }, [isHighlighted]);
 
-  const handleNameChange = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (e.target.value !== game.name) {
-      onUpdate(game.id, { name: e.target.value, lastUpdated: new Date().toISOString() });
-    }
-  };
-
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onUpdate(game.id, {
       status: e.target.value as GameStatus,
       lastUpdated: new Date().toISOString()
     });
-  };
-
-  const handleSteamUrlClick = () => {
-    if (game.steamUrl) {
-      window.open(game.steamUrl, '_blank');
-    } else {
-      setIsEditingSteamUrl(true);
-    }
   };
 
   const handleSteamUrlSave = () => {
@@ -61,9 +48,19 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
         display: 'flex',
         flexDirection: 'row',
         padding: '0',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative',
+        width: '100%'
       }}
     >
+      <button
+        onClick={() => onDelete(game.id)}
+        className="delete-btn-absolute"
+        title="删除游戏"
+      >
+        <Trash2 size={16} />
+      </button>
+
       {game.coverImage ? (
         <img
           src={game.coverImage}
@@ -107,31 +104,50 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
       }}>
         <div style={{
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'space-between',
           gap: '1rem'
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <input
-              className="game-name"
-              defaultValue={game.name}
-              onBlur={handleNameChange}
-              placeholder="Game Name"
-              style={{
-                width: '100%',
-                fontSize: '1rem'
-              }}
-            />
-            {game.positivePercentage !== undefined && game.totalReviews !== undefined && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <a
+                href={game.steamUrl || '#'}
+                target={game.steamUrl ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                onClick={(e) => !game.steamUrl && (e.preventDefault(), setIsEditingSteamUrl(true))}
+                className="game-name-link"
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  textDecoration: 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {game.name}
+              </a>
+            </div>
+            
+            {(game.positivePercentage !== undefined && game.totalReviews !== undefined) || game.steamUrl ? (
               <div style={{
                 marginTop: '0.25rem',
                 fontSize: '0.8rem',
                 paddingLeft: '0.25rem',
-                color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
+                display: 'flex',
+                gap: '0.75rem',
+                alignItems: 'center'
               }}>
-                好评率-{game.positivePercentage}%({game.totalReviews.toLocaleString()}评论数)
+                {game.positivePercentage !== undefined && (
+                   <span style={{ 
+                     color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
+                   }}>
+                    好评率-{game.positivePercentage}%({game.totalReviews?.toLocaleString()}评论数)
+                  </span>
+                )}
               </div>
-            )}
+            ) : null}
           </div>
           <div style={{
             display: 'flex',
@@ -139,20 +155,6 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
             gap: '0.5rem',
             flexShrink: 0
           }}>
-            <button
-              className="btn-steam"
-              onClick={handleSteamUrlClick}
-              title={game.steamUrl ? "Open Steam Page" : "Add Steam URL"}
-              style={{
-                color: game.steamUrl ? '#1b8dd4' : '#999',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.25rem 0.5rem'
-              }}
-            >
-              <ExternalLink size={16} />
-            </button>
             <select
               className="game-status-select"
               value={game.status}

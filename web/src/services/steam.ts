@@ -9,6 +9,45 @@ export interface SteamGame {
   averagePlaytime: number | null;
 }
 
+interface SteamSearchItem {
+  id: number;
+  type: string;
+  name: string;
+  tiny_image: string;
+  steamUrl: string;
+  coverImage: string;
+  tags: string[];
+}
+
+interface SteamSearchResponse {
+  items: SteamSearchItem[];
+}
+
+interface SteamReviewSummary {
+  total_positive: number;
+  total_negative: number;
+  total_reviews: number;
+}
+
+interface SteamReviewsResponse {
+  query_summary: SteamReviewSummary;
+}
+
+interface SteamAppDetails {
+  [appId: string]: {
+    success: boolean;
+    data: {
+      name: string;
+      steam_appid: number;
+      header_image: string;
+      short_description: string;
+      background: string;
+      genres: { id: string; description: string }[];
+      categories: { id: number; description: string }[];
+    };
+  };
+}
+
 // 使用多个 CORS 代理备用方案
 const CORS_PROXIES = [
   'https://api.allorigins.win/raw?url=',
@@ -48,7 +87,7 @@ export class SteamService {
           continue; // 尝试下一个代理
         }
 
-        const data = await response.json();
+        const data = await response.json() as SteamSearchResponse;
         console.log('Steam API response:', data);
 
         if (!data.items || data.items.length === 0) {
@@ -57,13 +96,13 @@ export class SteamService {
         }
 
         // 转换 Steam API 数据到我们的格式
-        const games: SteamGame[] = data.items
-          .filter((item: any) => item.type === 'app') // 只要游戏，不要 DLC 等
+        const gamesItems = data.items
+          .filter((item) => item.type === 'app') // 只要游戏，不要 DLC 等
           .slice(0, 10); // 限制返回 10 个结果
 
         // 并行获取每个游戏的评论统计
         const gamesWithDetails = await Promise.all(
-          games.map(async (item: any) => {
+          gamesItems.map(async (item) => {
             // 获取评论统计
             const reviews = await this.getGameReviews(item.id);
             console.log(`Game ${item.id} reviews:`, reviews);
@@ -97,7 +136,7 @@ export class SteamService {
   }
 
   // 获取游戏详情
-  async getGameDetails(appId: number): Promise<any> {
+  async getGameDetails(appId: number): Promise<SteamAppDetails[string]['data'] | null> {
     const detailsUrl = `https://store.steampowered.com/api/appdetails?appids=${appId}&l=schinese&cc=CN`;
 
     // 尝试多个代理
@@ -110,7 +149,7 @@ export class SteamService {
           continue;
         }
 
-        const data = await response.json();
+        const data = await response.json() as SteamAppDetails;
 
         if (!data[appId]?.success) {
           continue;
@@ -140,7 +179,7 @@ export class SteamService {
           continue;
         }
 
-        const data = await response.json();
+        const data = await response.json() as SteamReviewsResponse;
 
         if (!data.query_summary) {
           continue;

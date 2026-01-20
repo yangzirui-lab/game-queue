@@ -5,7 +5,7 @@ import { SteamSearch } from './components/SteamSearch'
 import { Settings } from './components/Settings'
 import type { Game } from './types'
 import { AnimatePresence, motion } from 'framer-motion'
-import { SettingsIcon, Loader2, Trash2, Play, Bookmark, CheckCircle } from 'lucide-react'
+import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle } from 'lucide-react'
 import { githubService } from './services/github'
 
 function App() {
@@ -259,9 +259,6 @@ function App() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
                         style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          alignItems: 'center',
                           position: 'relative'
                         }}
                         className="game-item-wrapper"
@@ -269,15 +266,9 @@ function App() {
                         <GameItem
                           game={game}
                           onUpdate={handleUpdateGame}
+                          onDelete={handleDeleteGame}
                           isHighlighted={highlightId === game.id}
                         />
-                        <button
-                          onClick={() => handleDeleteGame(game.id)}
-                          className="delete-btn-external"
-                          title="删除游戏"
-                        >
-                          <Trash2 size={18} />
-                        </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -309,9 +300,6 @@ function App() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
                         style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          alignItems: 'center',
                           position: 'relative'
                         }}
                         className="game-item-wrapper"
@@ -319,15 +307,9 @@ function App() {
                         <GameItem
                           game={game}
                           onUpdate={handleUpdateGame}
+                          onDelete={handleDeleteGame}
                           isHighlighted={highlightId === game.id}
                         />
-                        <button
-                          onClick={() => handleDeleteGame(game.id)}
-                          className="delete-btn-external"
-                          title="删除游戏"
-                        >
-                          <Trash2 size={18} />
-                        </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -359,9 +341,6 @@ function App() {
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
                         style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          alignItems: 'center',
                           position: 'relative'
                         }}
                         className="game-item-wrapper"
@@ -369,15 +348,9 @@ function App() {
                         <GameItem
                           game={game}
                           onUpdate={handleUpdateGame}
+                          onDelete={handleDeleteGame}
                           isHighlighted={highlightId === game.id}
                         />
-                        <button
-                          onClick={() => handleDeleteGame(game.id)}
-                          className="delete-btn-external"
-                          title="删除游戏"
-                        >
-                          <Trash2 size={18} />
-                        </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>

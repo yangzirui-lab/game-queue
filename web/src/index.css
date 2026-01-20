@@ -340,38 +340,39 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Game item wrapper with delete button */
-.game-item-wrapper {
-  width: 100%;
-}
-
-.game-item-wrapper .game-card {
-  flex: 1;
-}
-
-.delete-btn-external {
-  background: transparent;
+/* Absolute delete button inside game-card */
+.delete-btn-absolute {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--card-border);
   border-radius: 50%;
   color: var(--text-secondary);
-  cursor: pointer;
-  width: 48px;
-  height: 48px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   transition: all 0.2s;
   opacity: 0;
-  pointer-events: none;
+  z-index: 10;
+  backdrop-filter: blur(4px);
 }
 
-.game-item-wrapper:hover .delete-btn-external {
+.game-card:hover .delete-btn-absolute {
   opacity: 1;
-  pointer-events: auto;
 }
 
-.delete-btn-external:hover {
-  background: rgba(244, 63, 94, 0.1);
-  color: var(--status-dropped);
+.delete-btn-absolute:hover {
+  background: var(--status-dropped);
+  color: white;
   border-color: var(--status-dropped);
+  transform: scale(1.1);
+}
+
+.game-name-link:hover {
+  color: var(--accent-color) !important;
+  text-decoration: underline !important;
 }
