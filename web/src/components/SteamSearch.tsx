@@ -12,6 +12,7 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
   const [results, setResults] = useState<SteamGame[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingReviews, setLoadingReviews] = useState<Set<number>>(new Set());
 
   // 实时搜索：输入时自动搜索，带防抖
   useEffect(() => {
@@ -40,6 +41,44 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
       setIsSearching(false);
     };
   }, [query]);
+
+  // 异步加载游戏评论数据
+  useEffect(() => {
+    if (results.length === 0) return;
+
+    // 为每个游戏异步加载好评率
+    results.forEach(async (game) => {
+      // 如果已经有评论数据，跳过
+      if (game.positivePercentage !== null && game.totalReviews !== null) {
+        return;
+      }
+
+      // 标记为正在加载
+      setLoadingReviews(prev => new Set(prev).add(game.id));
+
+      try {
+        const reviews = await steamService.getGameReviews(game.id);
+
+        // 更新该游戏的评论数据
+        setResults(prevResults =>
+          prevResults.map(g =>
+            g.id === game.id
+              ? { ...g, positivePercentage: reviews.positivePercentage, totalReviews: reviews.totalReviews }
+              : g
+          )
+        );
+      } catch (err) {
+        console.error(`Failed to load reviews for game ${game.id}:`, err);
+      } finally {
+        // 移除加载标记
+        setLoadingReviews(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(game.id);
+          return newSet;
+        });
+      }
+    });
+  }, [results.length]); // 只在 results 数量变化时触发
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -169,13 +208,17 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
                   {game.name}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.85rem' }}>
-                  {game.positivePercentage !== null && game.totalReviews !== null && (
+                  {game.positivePercentage !== null && game.totalReviews !== null ? (
                     <div style={{
                       color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
                     }}>
                       好评率-{game.positivePercentage}%({game.totalReviews.toLocaleString()}评论数)
                     </div>
-                  )}
+                  ) : loadingReviews.has(game.id) ? (
+                    <div style={{ color: '#666', fontSize: '0.8rem' }}>
+                      加载评价中...
+                    </div>
+                  ) : null}
                   {game.tags.length > 0 && (
                     <div style={{ color: '#666' }}>
                       {game.tags.join(', ')}
