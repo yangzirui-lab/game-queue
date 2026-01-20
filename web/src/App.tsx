@@ -16,6 +16,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [showSteamSearch, setShowSteamSearch] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [activeTab, setActiveTab] = useState<'playing' | 'pending' | 'completion'>('playing')
 
   // Fetch games on mount
   useEffect(() => {
@@ -234,129 +235,117 @@ function App() {
             <div style={{ marginTop: '1rem' }}>加载中...</div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Playing Section */}
-            {groupedGames.playing.length > 0 && (
-              <div>
-                <h2 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '600',
-                  marginBottom: '1rem',
-                  color: 'var(--status-playing)',
+          <div>
+            {/* Tab Navigation */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              marginBottom: '2rem',
+              borderBottom: '2px solid var(--card-border)',
+              paddingBottom: '0'
+            }}>
+              <button
+                onClick={() => setActiveTab('playing')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === 'playing' ? '2px solid var(--status-playing)' : '2px solid transparent',
+                  color: activeTab === 'playing' ? 'var(--status-playing)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: activeTab === 'playing' ? '600' : '400',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <Play size={20} /> Playing ({groupedGames.playing.length})
-                </h2>
-                <div className="game-list">
-                  <AnimatePresence>
-                    {groupedGames.playing.map(game => (
-                      <motion.div
-                        key={game.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          position: 'relative'
-                        }}
-                        className="game-item-wrapper"
-                      >
-                        <GameItem
-                          game={game}
-                          onUpdate={handleUpdateGame}
-                          onDelete={handleDeleteGame}
-                          isHighlighted={highlightId === game.id}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
+                  gap: '0.5rem',
+                  transition: 'all 0.2s',
+                  marginBottom: '-2px'
+                }}
+              >
+                <Play size={18} />
+                Playing ({groupedGames.playing.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('pending')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === 'pending' ? '2px solid var(--status-backlog)' : '2px solid transparent',
+                  color: activeTab === 'pending' ? 'var(--status-backlog)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: activeTab === 'pending' ? '600' : '400',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s',
+                  marginBottom: '-2px'
+                }}
+              >
+                <Bookmark size={18} />
+                Pending ({groupedGames.pending.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('completion')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === 'completion' ? '2px solid var(--status-finished)' : '2px solid transparent',
+                  color: activeTab === 'completion' ? 'var(--status-finished)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: activeTab === 'completion' ? '600' : '400',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s',
+                  marginBottom: '-2px'
+                }}
+              >
+                <CheckCircle size={18} />
+                Completion ({groupedGames.completion.length})
+              </button>
+            </div>
 
-            {/* Pending Section */}
-            {groupedGames.pending.length > 0 && (
-              <div>
-                <h2 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '600',
-                  marginBottom: '1rem',
-                  color: 'var(--status-backlog)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <Bookmark size={20} /> Pending ({groupedGames.pending.length})
-                </h2>
-                <div className="game-list">
-                  <AnimatePresence>
-                    {groupedGames.pending.map(game => (
-                      <motion.div
-                        key={game.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          position: 'relative'
-                        }}
-                        className="game-item-wrapper"
-                      >
-                        <GameItem
-                          game={game}
-                          onUpdate={handleUpdateGame}
-                          onDelete={handleDeleteGame}
-                          isHighlighted={highlightId === game.id}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
-
-            {/* Completion Section */}
-            {groupedGames.completion.length > 0 && (
-              <div>
-                <h2 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '600',
-                  marginBottom: '1rem',
-                  color: 'var(--status-finished)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  <CheckCircle size={20} /> Completion ({groupedGames.completion.length})
-                </h2>
-                <div className="game-list">
-                  <AnimatePresence>
-                    {groupedGames.completion.map(game => (
-                      <motion.div
-                        key={game.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          position: 'relative'
-                        }}
-                        className="game-item-wrapper"
-                      >
-                        <GameItem
-                          game={game}
-                          onUpdate={handleUpdateGame}
-                          onDelete={handleDeleteGame}
-                          isHighlighted={highlightId === game.id}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
+            {/* Game List */}
+            <div className="game-list">
+              <AnimatePresence mode="wait">
+                {groupedGames[activeTab].length > 0 ? (
+                  groupedGames[activeTab].map(game => (
+                    <motion.div
+                      key={game.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      style={{
+                        position: 'relative'
+                      }}
+                      className="game-item-wrapper"
+                    >
+                      <GameItem
+                        game={game}
+                        onUpdate={handleUpdateGame}
+                        onDelete={handleDeleteGame}
+                        isHighlighted={highlightId === game.id}
+                      />
+                    </motion.div>
+                  ))
+                ) : (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}
+                  >
+                    该状态下暂无游戏
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {games.length === 0 && (
               <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
