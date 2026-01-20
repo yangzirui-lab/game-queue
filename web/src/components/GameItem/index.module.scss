@@ -19,10 +19,6 @@
     }
   }
 
-  &.playing {
-    border-left: 4px solid var(--status-playing);
-  }
-
   &.highlight {
     animation: pulseBorder 2s infinite;
   }
