@@ -68,6 +68,7 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
       id={`game-${game.id}`}
       style={{
         display: 'flex',
+        flexDirection: 'row',
         padding: '0',
         minHeight: '120px',
         overflow: 'hidden'
