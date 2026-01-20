@@ -5,7 +5,7 @@ import { steamService, type SteamGame } from "../../services/steam";
 import styles from "./index.module.scss";
 
 interface SteamSearchProps {
-  onAddGame: (name: string, steamUrl: string, coverImage: string, tags: string[], positivePercentage?: number, totalReviews?: number) => void;
+  onAddGame: (name: string, steamUrl: string, coverImage: string, tags: string[], positivePercentage?: number, totalReviews?: number, releaseDate?: string, comingSoon?: boolean) => void;
   onClose: () => void;
 }
 
@@ -15,16 +15,25 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 异步获取单个游戏的好评率
+  // 异步获取单个游戏的好评率和发布日期
   const fetchGameReviews = async (game: SteamGame) => {
     try {
-      const reviews = await steamService.getGameReviews(game.id);
+      const [reviews, releaseInfo] = await Promise.all([
+        steamService.getGameReviews(game.id),
+        steamService.getGameReleaseDate(game.id)
+      ]);
 
-      // 更新该游戏的好评率数据
+      // 更新该游戏的好评率和发布日期数据
       setResults(prevResults =>
         prevResults.map(g =>
           g.id === game.id
-            ? { ...g, positivePercentage: reviews.positivePercentage, totalReviews: reviews.totalReviews }
+            ? {
+                ...g,
+                positivePercentage: reviews.positivePercentage,
+                totalReviews: reviews.totalReviews,
+                releaseDate: releaseInfo.releaseDate,
+                comingSoon: releaseInfo.comingSoon
+              }
             : g
         )
       );
@@ -73,7 +82,16 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
   };
 
   const handleAddGame = (game: SteamGame) => {
-    onAddGame(game.name, game.steamUrl, game.coverImage, game.tags, game.positivePercentage ?? undefined, game.totalReviews ?? undefined);
+    onAddGame(
+      game.name,
+      game.steamUrl,
+      game.coverImage,
+      game.tags,
+      game.positivePercentage ?? undefined,
+      game.totalReviews ?? undefined,
+      game.releaseDate ?? undefined,
+      game.comingSoon ?? undefined
+    );
     onClose();
   };
 

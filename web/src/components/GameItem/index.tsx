@@ -89,22 +89,33 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, onDelete, is
               </div>
               
               <div className={styles.gameMeta}>
-                {game.positivePercentage !== undefined && game.positivePercentage !== null &&
-                 game.totalReviews !== undefined && game.totalReviews !== null ? (
-                  <span className={styles.metaRating}>
-                    <span className={classNames(styles.ratingPercentage, {
-                      [styles.high]: game.positivePercentage >= 80,
-                      [styles.medium]: game.positivePercentage >= 60 && game.positivePercentage < 80,
-                      [styles.low]: game.positivePercentage < 60
-                    })}>
-                      {game.positivePercentage}% 好评
+                <div className={styles.metaRow}>
+                  {game.positivePercentage !== undefined && game.positivePercentage !== null &&
+                   game.totalReviews !== undefined && game.totalReviews !== null ? (
+                    <span className={styles.metaRating}>
+                      <span className={classNames(styles.ratingPercentage, {
+                        [styles.high]: game.positivePercentage >= 80,
+                        [styles.medium]: game.positivePercentage >= 60 && game.positivePercentage < 80,
+                        [styles.low]: game.positivePercentage < 60
+                      })}>
+                        {game.positivePercentage}% 好评
+                      </span>
+                      <span className={styles.reviewCount}>
+                        {game.totalReviews?.toLocaleString()} 条评论
+                      </span>
                     </span>
-                    <span className={styles.reviewCount}>
-                      {game.totalReviews?.toLocaleString()} 条评论
-                    </span>
-                  </span>
-                ) : (
-                  <span className={styles.metaRatingLoading}>加载好评率中...</span>
+                  ) : (
+                    <span className={styles.metaRatingLoading}>加载好评率中...</span>
+                  )}
+                </div>
+                {game.releaseDate && (
+                  <div className={styles.releaseInfo}>
+                    {game.comingSoon ? (
+                      <span className={styles.comingSoon}>{game.releaseDate}</span>
+                    ) : (
+                      <span className={styles.releaseDate}>发布于 {game.releaseDate}</span>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

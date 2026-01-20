@@ -7,6 +7,8 @@ export interface SteamGame {
   positivePercentage: number | null;
   totalReviews: number | null;
   averagePlaytime: number | null;
+  releaseDate: string | null;
+  comingSoon: boolean | null;
 }
 
 interface SteamSearchItem {
@@ -44,6 +46,10 @@ interface SteamAppDetails {
       background: string;
       genres: { id: string; description: string }[];
       categories: { id: number; description: string }[];
+      release_date: {
+        coming_soon: boolean;
+        date: string;
+      };
     };
   };
 }
@@ -108,6 +114,8 @@ export class SteamService {
             positivePercentage: null, // 后续异步加载
             totalReviews: null, // 后续异步加载
             averagePlaytime: null,
+            releaseDate: null, // 后续异步加载
+            comingSoon: null, // 后续异步加载
           }));
 
         console.log(`Successfully found ${games.length} games`);
@@ -153,6 +161,20 @@ export class SteamService {
     }
 
     return null;
+  }
+
+  // 获取游戏发布日期
+  async getGameReleaseDate(appId: number): Promise<{ releaseDate: string | null; comingSoon: boolean | null }> {
+    const details = await this.getGameDetails(appId)
+
+    if (!details?.release_date) {
+      return { releaseDate: null, comingSoon: null }
+    }
+
+    return {
+      releaseDate: details.release_date.date || null,
+      comingSoon: details.release_date.coming_soon || null,
+    }
   }
 
   // 获取游戏评论统计

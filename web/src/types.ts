@@ -10,6 +10,8 @@ export interface Game {
   coverImage?: string;
   positivePercentage?: number;
   totalReviews?: number;
+  releaseDate?: string;
+  comingSoon?: boolean;
 }
 
 export interface GameQueueData {

@@ -97,19 +97,26 @@ function App() {
         const appId = parseInt(match[1])
 
         try {
-          const reviews = await steamService.getGameReviews(appId)
+          const [reviews, releaseInfo] = await Promise.all([
+            steamService.getGameReviews(appId),
+            steamService.getGameReleaseDate(appId)
+          ])
 
-          // 如果获取到了好评率数据，或者数据有变化时更新
+          // 如果获取到了数据，或者数据有变化时更新
           const needsUpdate =
             (game.positivePercentage === null || game.positivePercentage === undefined) ||
+            (game.releaseDate === null || game.releaseDate === undefined) ||
             (reviews.positivePercentage !== game.positivePercentage) ||
-            (reviews.totalReviews !== game.totalReviews)
+            (reviews.totalReviews !== game.totalReviews) ||
+            (releaseInfo.releaseDate !== game.releaseDate)
 
-          if (needsUpdate && (reviews.positivePercentage !== null || reviews.totalReviews !== null)) {
+          if (needsUpdate && (reviews.positivePercentage !== null || reviews.totalReviews !== null || releaseInfo.releaseDate !== null)) {
             const updatedGame: Game = {
               ...game,
               positivePercentage: reviews.positivePercentage ?? game.positivePercentage,
               totalReviews: reviews.totalReviews ?? game.totalReviews,
+              releaseDate: releaseInfo.releaseDate ?? game.releaseDate,
+              comingSoon: releaseInfo.comingSoon ?? game.comingSoon,
               lastUpdated: new Date().toISOString()
             }
 
@@ -118,10 +125,10 @@ function App() {
               prevGames.map(g => g.id === game.id ? updatedGame : g)
             )
 
-            console.log(`已更新 ${game.name} 的好评率: ${reviews.positivePercentage}%`)
+            console.log(`已更新 ${game.name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}`)
           }
         } catch (err) {
-          console.error(`刷新 ${game.name} 好评率失败:`, err)
+          console.error(`刷新 ${game.name} 信息失败:`, err)
         }
 
         // 添加延迟避免请求过快
@@ -162,7 +169,7 @@ function App() {
     return { playing, pending, completion }
   }, [games, searchTerm])
 
-  const handleAddGameFromSteam = async (name: string, steamUrl: string, coverImage: string, _tags: string[], positivePercentage?: number, totalReviews?: number) => {
+  const handleAddGameFromSteam = async (name: string, steamUrl: string, coverImage: string, _tags: string[], positivePercentage?: number, totalReviews?: number, releaseDate?: string, comingSoon?: boolean) => {
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase())
     if (existing) {
       setToast(`"${name}" 已经在队列中！`)
@@ -179,7 +186,9 @@ function App() {
       steamUrl,
       coverImage,
       positivePercentage,
-      totalReviews
+      totalReviews,
+      releaseDate,
+      comingSoon
     }
 
     try {
@@ -194,22 +203,28 @@ function App() {
       setToast(`从 Steam 添加了 "${name}"`)
       setHighlightId(newGame.id)
 
-      // 如果没有好评率数据，立即拉取
+      // 如果没有好评率或发布日期数据，立即拉取
       if ((positivePercentage === undefined || positivePercentage === null) ||
-          (totalReviews === undefined || totalReviews === null)) {
+          (totalReviews === undefined || totalReviews === null) ||
+          !newGame.releaseDate) {
         const match = steamUrl.match(/\/app\/(\d+)/)
         if (match) {
           const appId = parseInt(match[1])
-          console.log(`正在获取 ${name} 的好评率...`)
+          console.log(`正在获取 ${name} 的信息...`)
 
           try {
-            const reviews = await steamService.getGameReviews(appId)
+            const [reviews, releaseInfo] = await Promise.all([
+              steamService.getGameReviews(appId),
+              steamService.getGameReleaseDate(appId)
+            ])
 
-            if (reviews.positivePercentage !== null || reviews.totalReviews !== null) {
+            if (reviews.positivePercentage !== null || reviews.totalReviews !== null || releaseInfo.releaseDate !== null) {
               const updatedGame: Game = {
                 ...newGame,
                 positivePercentage: reviews.positivePercentage ?? positivePercentage,
                 totalReviews: reviews.totalReviews ?? totalReviews,
+                releaseDate: releaseInfo.releaseDate ?? newGame.releaseDate,
+                comingSoon: releaseInfo.comingSoon ?? newGame.comingSoon,
               }
 
               // 更新本地状态
@@ -217,10 +232,10 @@ function App() {
                 prevGames.map(g => g.id === newGame.id ? updatedGame : g)
               )
 
-              console.log(`已获取 ${name} 的好评率: ${reviews.positivePercentage}%`)
+              console.log(`已获取 ${name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}`)
             }
           } catch (err) {
-            console.error(`获取 ${name} 好评率失败:`, err)
+            console.error(`获取 ${name} 信息失败:`, err)
           }
         }
       }
