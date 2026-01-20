@@ -13,7 +13,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [isTesting, setIsTesting] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [detectedOwner, setDetectedOwner] = useState('');
 
   const FIXED_REPO = 'game-queue';
 
@@ -21,7 +20,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     const config = githubService.getConfig();
     if (config) {
       setToken(config.token);
-      setDetectedOwner(config.owner);
     }
   }, []);
 
@@ -45,8 +43,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
         setIsTesting(false);
         return;
       }
-
-      setDetectedOwner(owner);
 
       // 临时保存配置以进行测试
       const tempConfig = { token, owner, repo: FIXED_REPO };
@@ -85,8 +81,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
         setIsSaving(false);
         return;
       }
-
-      setDetectedOwner(owner);
 
       githubService.saveConfig({ token, owner, repo: FIXED_REPO });
 
