@@ -169,21 +169,11 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
                   {game.name}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.85rem' }}>
-                  {game.positivePercentage !== null && (
+                  {game.positivePercentage !== null && game.totalReviews !== null && (
                     <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
                       color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
                     }}>
-                      <span style={{ fontSize: '1rem' }}>👍</span>
-                      <span>{game.positivePercentage}%</span>
-                    </div>
-                  )}
-                  {game.totalReviews !== null && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#999' }}>
-                      <span style={{ fontSize: '1rem' }}>💬</span>
-                      <span>{game.totalReviews.toLocaleString()} reviews</span>
+                      好评率-{game.positivePercentage}%({game.totalReviews.toLocaleString()}评论数)
                     </div>
                   )}
                   {game.tags.length > 0 && (

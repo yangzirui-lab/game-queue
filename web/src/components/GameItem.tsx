@@ -122,36 +122,13 @@ export const GameItem: React.FC<GameItemProps> = ({ game, onUpdate, isHighlighte
                 fontSize: '1rem'
               }}
             />
-            {(game.positivePercentage !== undefined || game.totalReviews !== undefined) && (
+            {game.positivePercentage !== undefined && game.totalReviews !== undefined && (
               <div style={{
                 marginTop: '0.25rem',
                 fontSize: '0.8rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem'
+                color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
               }}>
-                {game.positivePercentage !== undefined && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    color: game.positivePercentage >= 80 ? '#66c0f4' : game.positivePercentage >= 60 ? '#ffa500' : '#999'
-                  }}>
-                    <span>👍</span>
-                    <span>{game.positivePercentage}%</span>
-                  </div>
-                )}
-                {game.totalReviews !== undefined && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                  }}>
-                    <span>💬</span>
-                    <span>{game.totalReviews.toLocaleString()} reviews</span>
-                  </div>
-                )}
+                好评率-{game.positivePercentage}%({game.totalReviews.toLocaleString()}评论数)
               </div>
             )}
           </div>
