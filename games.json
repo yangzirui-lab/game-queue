@@ -1,6 +1,19 @@
 {
   "games": [
     {
+      "id": "1768966833572",
+      "name": "夜族崛起",
+      "status": "queueing",
+      "addedAt": "2026-01-21T03:40:33.572Z",
+      "lastUpdated": "2026-01-21T03:40:33.572Z",
+      "steamUrl": "https://store.steampowered.com/app/1604030",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1604030/9b1b1d0c19ed80e9446c6a3ce37e9fdacf7f14c1/capsule_231x87.jpg?t=1765977712",
+      "positivePercentage": 89,
+      "totalReviews": 129993,
+      "releaseDate": "2024 年 5 月 8 日",
+      "isEarlyAccess": false
+    },
+    {
       "id": "1768928497887",
       "name": "无主之地®4",
       "status": "completion",
@@ -151,7 +164,7 @@
       "steamUrl": "https://store.steampowered.com/app/1623730",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1623730/c5806289105932d9729d1ccba4bd5fc6158078af/capsule_231x87_schinese.jpg?t=1768450096",
       "positivePercentage": 94,
-      "totalReviews": 411192,
+      "totalReviews": 411187,
       "releaseDate": "2024 年 1 月 18 日",
       "isEarlyAccess": true
     },
@@ -229,7 +242,7 @@
       "steamUrl": "https://store.steampowered.com/app/730",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/730/capsule_231x87_schinese.jpg?t=1749053861",
       "positivePercentage": 86,
-      "totalReviews": 9315179,
+      "totalReviews": 9315232,
       "releaseDate": "2017 年 9 月 15 日",
       "isEarlyAccess": false
     },
