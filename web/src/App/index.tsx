@@ -4,7 +4,7 @@ import { GameItem } from '../components/GameItem'
 import { SearchBar } from '../components/SearchBar'
 import { SteamSearch } from '../components/SteamSearch'
 import { Settings } from '../components/Settings'
-import type { Game } from '../types'
+import type { Game, GameStatus } from '../types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle, RefreshCw } from 'lucide-react'
 import { githubService } from '../services/github'
@@ -33,7 +33,28 @@ function App() {
       setIsLoading(true)
       try {
         const data = await githubService.fetchGames()
-        setGames(data.games)
+
+        // 数据迁移：将 pending 状态迁移为 queueing
+        const hasPendingGames = data.games.some((g: Game) => g.status === 'pending' as any)
+
+        if (hasPendingGames) {
+          console.log('Migrating pending games to queueing...')
+          const migratedGames = data.games.map((g: Game) =>
+            g.status === ('pending' as any) ? { ...g, status: 'queueing' as GameStatus } : g
+          )
+
+          // 保存迁移后的数据
+          await githubService.updateGames(
+            { games: migratedGames },
+            'Migrate pending status to queueing'
+          )
+
+          setGames(migratedGames)
+          setToast('数据已自动迁移：pending → queueing')
+          console.log('Migration completed')
+        } else {
+          setGames(data.games)
+        }
       } catch (err) {
         console.error('Failed to fetch games:', err)
         setToast('加载游戏失败。请检查 GitHub 配置。')
