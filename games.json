@@ -1,13 +1,25 @@
 {
   "games": [
     {
+      "id": "1768977887351",
+      "name": "Fishing Planet",
+      "status": "queueing",
+      "addedAt": "2026-01-21T06:44:47.351Z",
+      "lastUpdated": "2026-01-21T06:44:47.351Z",
+      "steamUrl": "https://store.steampowered.com/app/380600",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/380600/58dd792f1f11caeed351f3d4359e4de459a5c8d4/capsule_231x87.jpg?t=1767100678"
+    },
+    {
       "id": "1768977866985",
       "name": "YAPYAP",
       "status": "queueing",
       "addedAt": "2026-01-21T06:44:26.985Z",
       "lastUpdated": "2026-01-21T06:44:26.985Z",
       "steamUrl": "https://store.steampowered.com/app/3834090",
-      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3834090/572e23522fedc8be0b352d3556f0119e1ca077ea/capsule_231x87.jpg?t=1768844087"
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3834090/572e23522fedc8be0b352d3556f0119e1ca077ea/capsule_231x87.jpg?t=1768844087",
+      "releaseDate": "2026 年 2 月 3 日",
+      "comingSoon": true,
+      "isEarlyAccess": false
     },
     {
       "id": "1768977297705",
