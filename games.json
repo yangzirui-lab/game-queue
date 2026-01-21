@@ -55,7 +55,7 @@
     {
       "id": "1768923143796",
       "name": "幸福工厂",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T15:32:23.796Z",
       "lastUpdated": "2026-01-20T15:32:23.796Z",
       "steamUrl": "https://store.steampowered.com/app/526870",
@@ -81,7 +81,7 @@
     {
       "id": "1768907876918",
       "name": "星际裂变 (StarRupture)",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T11:17:56.918Z",
       "lastUpdated": "2026-01-20T11:17:56.918Z",
       "steamUrl": "https://store.steampowered.com/app/1631270",
@@ -94,7 +94,7 @@
     {
       "id": "1768907794742",
       "name": "深海迷航2",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T11:16:34.742Z",
       "lastUpdated": "2026-01-20T11:16:34.742Z",
       "steamUrl": "https://store.steampowered.com/app/1962700",
@@ -106,7 +106,7 @@
     {
       "id": "1768901475672",
       "name": "人渣",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T09:31:15.672Z",
       "lastUpdated": "2026-01-20T10:15:59.371Z",
       "steamUrl": "https://store.steampowered.com/app/513710",
@@ -132,7 +132,7 @@
     {
       "id": "1768900763027",
       "name": "PEAK",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T09:19:23.027Z",
       "lastUpdated": "2026-01-20T09:19:23.027Z",
       "steamUrl": "https://store.steampowered.com/app/3527290",
@@ -184,7 +184,7 @@
     {
       "id": "1768900344953",
       "name": "Voyagers of Nera",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T09:12:24.953Z",
       "lastUpdated": "2026-01-20T09:12:24.953Z",
       "steamUrl": "https://store.steampowered.com/app/2686630",
@@ -197,7 +197,7 @@
     {
       "id": "1768900234397",
       "name": "禁闭求生2 Grounded 2",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T09:10:34.397Z",
       "lastUpdated": "2026-01-20T09:10:34.397Z",
       "steamUrl": "https://store.steampowered.com/app/2661300",
@@ -210,7 +210,7 @@
     {
       "id": "1768900182394",
       "name": "死域Rogue",
-      "status": "pending",
+      "status": "queueing",
       "addedAt": "2026-01-20T09:09:42.394Z",
       "lastUpdated": "2026-01-20T09:09:42.394Z",
       "steamUrl": "https://store.steampowered.com/app/3228590",
