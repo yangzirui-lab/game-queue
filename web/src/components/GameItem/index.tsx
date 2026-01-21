@@ -87,6 +87,16 @@ export const GameItem: React.FC<GameItemProps> = ({
     }, 2000)
   }
 
+  const handleCoverClick = () => {
+    if (!game.steamUrl) {
+      onShowToast?.('该游戏尚未设置Steam链接')
+      return
+    }
+
+    // 直接打开Steam网页版
+    window.open(game.steamUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div
       ref={itemRef}
@@ -105,7 +115,7 @@ export const GameItem: React.FC<GameItemProps> = ({
       </button>
 
       <div className={styles.gameWrapper}>
-        <div className={styles.gameCoverContainer}>
+        <div className={styles.gameCoverContainer} onClick={handleCoverClick}>
           {game.coverImage && !coverError ? (
             <img
               src={game.coverImage}

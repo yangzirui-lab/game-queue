@@ -66,6 +66,28 @@
     height: 124px;
     border-radius: 1rem 0 0 1rem;
     overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0);
+      transition: background 0.3s ease;
+      pointer-events: none;
+    }
+
+    &:hover {
+      transform: scale(1.05);
+
+      &::after {
+        background: rgba(0, 0, 0, 0.2);
+      }
+    }
 
     .gameCover {
       width: 100%;
