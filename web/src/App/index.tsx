@@ -569,6 +569,7 @@ function App() {
             {/* Tab Navigation - iOS Style */}
             <div className={styles.tabNav}>
               <button
+                data-status="playing"
                 onClick={() => setActiveTab('playing')}
                 className={classNames(styles.tabBtn, {
                   [styles.active]: activeTab === 'playing',
@@ -579,6 +580,7 @@ function App() {
                 Playing ({groupedGames.playing.length})
               </button>
               <button
+                data-status="queueing"
                 onClick={() => setActiveTab('queueing')}
                 className={classNames(styles.tabBtn, {
                   [styles.active]: activeTab === 'queueing',
@@ -589,6 +591,7 @@ function App() {
                 Queueing ({groupedGames.queueing.length})
               </button>
               <button
+                data-status="completion"
                 onClick={() => setActiveTab('completion')}
                 className={classNames(styles.tabBtn, {
                   [styles.active]: activeTab === 'completion',

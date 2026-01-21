@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react'
 import classNames from 'classnames'
 import type { Game, GameStatus } from '../../types'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Loader2 } from 'lucide-react'
 import styles from './index.module.scss'
 
 interface GameItemProps {
   game: Game
-  onUpdate: (id: string, updates: Partial<Game>) => void
+  onUpdate: (id: string, updates: Partial<Game>) => Promise<void>
   onDelete: (id: string) => void
   isHighlighted: boolean
   onShowToast?: (message: string) => void
@@ -23,6 +23,9 @@ export const GameItem: React.FC<GameItemProps> = ({
   const [isEditingSteamUrl, setIsEditingSteamUrl] = useState(false)
   const [steamUrlInput, setSteamUrlInput] = useState(game.steamUrl || '')
   const [coverError, setCoverError] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const statusBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (isHighlighted && itemRef.current) {
@@ -30,11 +33,157 @@ export const GameItem: React.FC<GameItemProps> = ({
     }
   }, [isHighlighted])
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onUpdate(game.id, {
-      status: e.target.value as GameStatus,
-      lastUpdated: new Date().toISOString(),
-    })
+  const getNextStatus = (status: GameStatus): GameStatus => {
+    const statusFlow: Record<GameStatus, GameStatus> = {
+      queueing: 'playing',
+      playing: 'completion',
+      completion: 'queueing',
+    }
+    return statusFlow[status]
+  }
+
+  const getStatusLabel = (status: GameStatus): string => {
+    const labels: Record<GameStatus, string> = {
+      queueing: 'Queueing',
+      playing: 'Playing',
+      completion: 'Completion',
+    }
+    return labels[status]
+  }
+
+  const handleStatusClick = async () => {
+    if (isAnimating || isUpdating) return
+
+    const nextStatus = getNextStatus(game.status)
+
+    // 进入 loading 状态
+    setIsUpdating(true)
+
+    try {
+      // 先调用接口更新状态
+      await onUpdate(game.id, {
+        status: nextStatus,
+        lastUpdated: new Date().toISOString(),
+      })
+
+      // 接口成功后，开始播放动画
+      const btnRect = statusBtnRef.current?.getBoundingClientRect()
+      if (!btnRect) {
+        setIsUpdating(false)
+        return
+      }
+
+      // 查找目标 tab 按钮
+      const targetTab = document.querySelector(`[data-status="${nextStatus}"]`) as HTMLElement
+      if (!targetTab) {
+        setIsUpdating(false)
+        return
+      }
+
+      const targetRect = targetTab.getBoundingClientRect()
+
+      // 创建飞行的圆形图片
+      const flyingImg = document.createElement('div')
+      flyingImg.className = styles.flyingCover
+
+      // 设置背景图片
+      if (game.coverImage && !coverError) {
+        flyingImg.style.backgroundImage = `url(${game.coverImage})`
+      } else {
+        flyingImg.textContent = game.name.charAt(0).toUpperCase()
+        flyingImg.classList.add(styles.flyingCoverPlaceholder)
+      }
+
+      document.body.appendChild(flyingImg)
+      setIsAnimating(true)
+
+      // 定义动画参数
+      const startX = btnRect.left + btnRect.width / 2
+      const startY = btnRect.top + btnRect.height / 2
+      const endX = targetRect.left + targetRect.width / 2
+      const endY = targetRect.top + targetRect.height / 2
+
+      // 计算控制点（贝塞尔曲线的顶点）
+      const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2))
+      const peakHeight = Math.min(250, distance * 0.6) // 抛物线高度
+      const controlX = (startX + endX) / 2
+      const controlY = Math.min(startY, endY) - peakHeight
+
+      const duration = 900 // 动画持续时间（毫秒）
+      const startTime = performance.now()
+
+      let hasTriggeredTabAnimation = false
+
+      // 二次贝塞尔曲线函数
+      const bezierQuadratic = (t: number, p0: number, p1: number, p2: number): number => {
+        const u = 1 - t
+        return u * u * p0 + 2 * u * t * p1 + t * t * p2
+      }
+
+      // 缓动函数（ease-in-out）
+      const easeInOutCubic = (t: number): number => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      }
+
+      // 动画循环
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime
+        const rawProgress = Math.min(elapsed / duration, 1)
+        const progress = easeInOutCubic(rawProgress)
+
+        // 计算当前位置（贝塞尔曲线）
+        const currentX = bezierQuadratic(progress, startX, controlX, endX)
+        const currentY = bezierQuadratic(progress, startY, controlY, endY)
+
+        // 计算旋转角度（两圈）
+        const rotation = progress * 720
+
+        // 计算缩放
+        let scale = 1
+        if (progress < 0.3) {
+          scale = 1 + progress * 1 // 0 -> 0.3: 1.0 -> 1.3
+        } else if (progress < 0.7) {
+          scale = 1.3 - (progress - 0.3) * 0.5 // 0.3 -> 0.7: 1.3 -> 1.1
+        } else {
+          scale = 1.1 - (progress - 0.7) * 3 // 0.7 -> 1.0: 1.1 -> 0.2
+        }
+
+        // 计算透明度
+        const opacity = progress > 0.85 ? 1 - (progress - 0.85) / 0.15 : 1
+
+        // 应用变换
+        flyingImg.style.left = `${currentX}px`
+        flyingImg.style.top = `${currentY}px`
+        flyingImg.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${rotation}deg)`
+        flyingImg.style.opacity = `${opacity}`
+
+        // 在 70% 进度时触发 tab 响应动画
+        if (progress >= 0.7 && !hasTriggeredTabAnimation) {
+          hasTriggeredTabAnimation = true
+          targetTab.classList.add('tabReceiving')
+          setTimeout(() => {
+            targetTab.classList.remove('tabReceiving')
+          }, 500)
+        }
+
+        // 继续动画或结束
+        if (rawProgress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          flyingImg.remove()
+          setIsAnimating(false)
+          setIsUpdating(false)
+        }
+      }
+
+      // 启动动画
+      requestAnimationFrame(animate)
+    } catch (error) {
+      // 接口调用失败，恢复状态
+      console.error('Failed to update game status:', error)
+      setIsUpdating(false)
+      onShowToast?.('更新状态失败，请重试')
+    }
   }
 
   const handleSteamUrlSave = () => {
@@ -181,18 +330,26 @@ export const GameItem: React.FC<GameItemProps> = ({
               </div>
             </div>
             <div className={styles.gameActions}>
-              <select
-                className={styles.gameStatusSelect}
-                value={game.status}
-                onChange={handleStatusChange}
-                style={{
-                  color: `var(--status-${game.status})`,
-                }}
+              <button
+                ref={statusBtnRef}
+                className={classNames(
+                  styles.gameStatusBtn,
+                  styles[`status-${getNextStatus(game.status)}`],
+                  { [styles.loading]: isUpdating }
+                )}
+                onClick={handleStatusClick}
+                title={`点击移动到 ${getStatusLabel(getNextStatus(game.status))}`}
+                disabled={isAnimating || isUpdating}
               >
-                <option value="playing">Playing</option>
-                <option value="queueing">Queueing</option>
-                <option value="completion">Completion</option>
-              </select>
+                {isUpdating ? (
+                  <>
+                    <Loader2 size={16} className={styles.spinner} />
+                    <span>更新中...</span>
+                  </>
+                ) : (
+                  getStatusLabel(getNextStatus(game.status))
+                )}
+              </button>
             </div>
           </div>
 
