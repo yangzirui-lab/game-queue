@@ -238,7 +238,21 @@
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1962700/a5668b4e7176e657e2f1c70667df989ba27f64b5/capsule_231x87.jpg?t=1767836238",
       "releaseDate": "2026 年",
       "comingSoon": true,
-      "isEarlyAccess": true
+      "isEarlyAccess": true,
+      "genres": [
+        {
+          "id": "1",
+          "description": "动作"
+        },
+        {
+          "id": "25",
+          "description": "冒险"
+        },
+        {
+          "id": "70",
+          "description": "抢先体验"
+        }
+      ]
     },
     {
       "id": "1768901475672",
@@ -249,7 +263,7 @@
       "steamUrl": "https://store.steampowered.com/app/513710",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/513710/9e67261681e1e556055e7ab09a65c6f602b33f81/capsule_231x87_schinese.jpg?t=1768219109",
       "positivePercentage": 74,
-      "totalReviews": 121238,
+      "totalReviews": 121239,
       "releaseDate": "2025 年 6 月 17 日",
       "isEarlyAccess": false
     },
@@ -275,7 +289,7 @@
       "steamUrl": "https://store.steampowered.com/app/3527290",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3527290/1844964d7a353e50eb3cc979ea922729d8c1b0ad/capsule_231x87.jpg?t=1764003551",
       "positivePercentage": 95,
-      "totalReviews": 280374,
+      "totalReviews": 280383,
       "releaseDate": "2025 年 6 月 16 日",
       "isEarlyAccess": false
     },
@@ -301,7 +315,7 @@
       "steamUrl": "https://store.steampowered.com/app/648800",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/648800/capsule_231x87.jpg?t=1727184011",
       "positivePercentage": 93,
-      "totalReviews": 363669,
+      "totalReviews": 363671,
       "releaseDate": "2022 年 6 月 20 日",
       "isEarlyAccess": false
     },
@@ -366,7 +380,7 @@
       "steamUrl": "https://store.steampowered.com/app/730",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/730/capsule_231x87_schinese.jpg?t=1749053861",
       "positivePercentage": 86,
-      "totalReviews": 9315484,
+      "totalReviews": 9315572,
       "releaseDate": "2017 年 9 月 15 日",
       "isEarlyAccess": false
     },
