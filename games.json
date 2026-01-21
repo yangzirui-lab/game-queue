@@ -1,6 +1,15 @@
 {
   "games": [
     {
+      "id": "1768982316731",
+      "name": "Light No Fire 无火之光",
+      "status": "queueing",
+      "addedAt": "2026-01-21T07:58:36.731Z",
+      "lastUpdated": "2026-01-21T07:58:36.731Z",
+      "steamUrl": "https://store.steampowered.com/app/2719590",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2719590/capsule_231x87.jpg?t=1761303632"
+    },
+    {
       "id": "1768980197235",
       "name": "Stardew Valley",
       "status": "playing",
