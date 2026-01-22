@@ -25,7 +25,3 @@ npm run web
 This will open the dashboard in your browser.
 
 All changes made in the web UI are automatically committed to Git
-
-## Configuration
-
-The tool automatically commits changes if `config.autoCommit` is set to `true` in `games.json`.
