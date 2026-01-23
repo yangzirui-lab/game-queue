@@ -1,10 +1,8 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-
 /**
  * Steam OpenID 登录入口
  * 重定向到 Steam 登录页面
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const GET = async (req: Request) => {
   try {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
@@ -23,9 +21,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const steamLoginUrl = `https://steamcommunity.com/openid/login?${params.toString()}`
 
     // 重定向到 Steam 登录页面
-    res.redirect(302, steamLoginUrl)
+    return Response.redirect(steamLoginUrl, 302)
   } catch (error) {
     console.error('Steam auth error:', error)
-    res.status(500).json({ error: 'Authentication failed' })
+    return new Response(JSON.stringify({ error: 'Authentication failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 }
