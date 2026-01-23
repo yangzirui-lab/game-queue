@@ -398,13 +398,14 @@
       "name": "雾锁王国 (Enshrouded)",
       "status": "playing",
       "addedAt": "2026-01-20T09:07:09.158Z",
-      "lastUpdated": "2026-01-20T09:07:32.169Z",
+      "lastUpdated": "2026-01-23T02:45:59.081Z",
       "steamUrl": "https://store.steampowered.com/app/1203620",
       "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1203620/fedcde67022995e7946efa91f69d0f12e4ba52ec/capsule_231x87.jpg?t=1765290696",
       "positivePercentage": 86,
       "totalReviews": 93960,
       "releaseDate": "2024 年 1 月 24 日",
-      "isEarlyAccess": true
+      "isEarlyAccess": true,
+      "isPinned": true
     }
   ]
 }
