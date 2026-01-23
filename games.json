@@ -1,29 +1,6 @@
 {
   "games": [
     {
-      "id": "1768984376740",
-      "name": "Light No Fire 无火之光",
-      "status": "queueing",
-      "addedAt": "2026-01-21T08:32:56.740Z",
-      "lastUpdated": "2026-01-23T02:31:01.786Z",
-      "steamUrl": "https://store.steampowered.com/app/2719590",
-      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2719590/capsule_231x87.jpg?t=1761303632",
-      "releaseDate": "即将宣布",
-      "comingSoon": true,
-      "isEarlyAccess": false,
-      "genres": [
-        {
-          "description": "动作",
-          "id": "1"
-        },
-        {
-          "description": "冒险",
-          "id": "25"
-        }
-      ],
-      "isPinned": false
-    },
-    {
       "id": "1768980197235",
       "name": "Stardew Valley",
       "status": "playing",
