@@ -286,17 +286,19 @@ export const GameItem: React.FC<GameItemProps> = ({
       })}
       id={`game-${game.id}`}
     >
-      <button
-        onClick={handlePinClick}
-        className={classNames(styles.pinBtnAbsolute, {
-          [styles.active]: game.isPinned,
-          [styles.loading]: isPinning,
-        })}
-        title={game.isPinned ? '取消置顶' : '置顶游戏'}
-        disabled={isPinning}
-      >
-        {isPinning ? <Loader2 size={16} className={styles.spinner} /> : <Pin size={16} />}
-      </button>
+      {game.status === 'queueing' && (
+        <button
+          onClick={handlePinClick}
+          className={classNames(styles.pinBtnAbsolute, {
+            [styles.active]: game.isPinned,
+            [styles.loading]: isPinning,
+          })}
+          title={game.isPinned ? '取消置顶' : '置顶游戏'}
+          disabled={isPinning}
+        >
+          {isPinning ? <Loader2 size={16} className={styles.spinner} /> : <Pin size={16} />}
+        </button>
+      )}
 
       <button
         onClick={handleDeleteClick}
