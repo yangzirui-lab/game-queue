@@ -58,7 +58,38 @@ vercel
 3. 点击 "Save" 保存
 4. 重新部署项目使环境变量生效
 
-### 4. 本地开发配置
+### 4. 配置前端 API 地址（GitHub Pages 部署）
+
+由于前端部署在 GitHub Pages，API 部署在 Vercel，需要配置 API 的完整 URL：
+
+1. 在 `web` 目录创建 `.env.production` 文件：
+
+```bash
+cd web
+cp .env.production.example .env.production
+```
+
+2. 编辑 `.env.production`，填入你的 Vercel API 域名：
+
+```env
+VITE_API_URL=https://your-app.vercel.app
+```
+
+⚠️ **重要提示**：
+
+- 替换 `your-app.vercel.app` 为你实际的 Vercel 域名
+- 不要包含尾部斜杠
+- 这个文件不应提交到 Git（已在 .gitignore 中）
+
+3. 重新构建前端：
+
+```bash
+npm run build
+```
+
+4. 部署到 GitHub Pages（通过 GitHub Actions 自动部署）
+
+### 5. 本地开发配置
 
 如果需要本地开发和测试 Steam 登录：
 
@@ -88,9 +119,15 @@ cd web && npm install && cd ..
 vercel dev
 ```
 
-4. 访问 `http://localhost:3000`
+4. 创建前端环境变量文件 `web/.env`：
 
-### 5. 测试 Steam 登录
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+5. 访问 `http://localhost:3000`
+
+### 6. 测试 Steam 登录
 
 1. 访问你的应用
 2. 点击右上角设置图标
@@ -120,6 +157,27 @@ vercel dev
 4. JWT token 有效期为 7 天，过期后需要重新登录
 
 ## 故障排查
+
+### 点击登录跳转到 GitHub Pages 404 页面
+
+**症状**：点击 Steam 登录按钮后，跳转到 `https://yangzirui-lab.github.io/api/auth/steam` 显示 404
+
+**原因**：前端未正确配置 API URL，使用了相对路径
+
+**解决方案**：
+
+1. 确认 `web/.env.production` 文件存在
+2. 检查文件内容：
+   ```env
+   VITE_API_URL=https://your-app.vercel.app
+   ```
+3. 确保域名正确，无尾部斜杠
+4. 重新构建前端：
+   ```bash
+   cd web
+   npm run build
+   ```
+5. 重新部署到 GitHub Pages
 
 ### Steam 登录后没有回调
 

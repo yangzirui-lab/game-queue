@@ -26,29 +26,46 @@ npm run web
 
 This will open the dashboard in your browser.
 
-## Steam Login Setup (Optional)
+## Deployment Architecture
 
-To enable Steam login functionality, you need to deploy the application to Vercel. See [STEAM_LOGIN_SETUP.md](./STEAM_LOGIN_SETUP.md) for detailed instructions.
+This project uses a **split deployment** approach:
 
-Quick steps:
+- **Frontend**: GitHub Pages (https://yangzirui-lab.github.io)
+- **API**: Vercel Serverless Functions
 
-1. Deploy to Vercel
-2. Get a Steam API Key
-3. Configure environment variables in Vercel Dashboard
-4. Users can now login with Steam to display their profile
+### Quick Deployment Guide
 
-## Deployment
+1. **Deploy API to Vercel**
 
-### Deploy to Vercel (Recommended)
+   ```bash
+   npm install -g vercel
+   vercel
+   ```
 
-1. Install Vercel CLI: `npm install -g vercel`
-2. Run: `vercel`
-3. Follow the prompts
-4. Configure environment variables (see [STEAM_LOGIN_SETUP.md](./STEAM_LOGIN_SETUP.md))
+2. **Configure Frontend Environment**
 
-The application will be deployed with:
+   ```bash
+   cd web
+   cp .env.production.example .env.production
+   # Edit .env.production: Set VITE_API_URL to your Vercel domain
+   ```
 
-- Frontend: Static site from `web/dist`
-- API: Serverless functions from `api/` directory
+3. **Build and Deploy Frontend**
+   ```bash
+   npm run build
+   # GitHub Actions will automatically deploy to GitHub Pages
+   ```
+
+📖 **Detailed guide**: See [DEPLOY_GUIDE.md](./DEPLOY_GUIDE.md)
+
+## Steam Login (Optional)
+
+Enable Steam authentication to display user profiles.
+
+**Requirements**: API must be deployed to Vercel
+
+📖 **Setup guide**: See [STEAM_LOGIN_SETUP.md](./STEAM_LOGIN_SETUP.md)
+
+---
 
 All changes made in the web UI are automatically synced to your GitHub repository

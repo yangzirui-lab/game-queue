@@ -10,6 +10,7 @@ export interface SteamUser {
 }
 
 const STEAM_TOKEN_KEY = 'steam_auth_token'
+// API 基础 URL - 从环境变量读取，用于支持跨域部署（GitHub Pages + Vercel）
 const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 interface JWTPayload {
