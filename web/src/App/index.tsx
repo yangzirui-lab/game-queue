@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle, RefreshCw } from 'lucide-react'
 import { githubService } from '../services/github'
 import { steamService } from '../services/steam'
+import { handleSteamCallback } from '../services/steamAuth'
 import styles from './index.module.scss'
 
 function App() {
@@ -21,6 +22,16 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [activeTab, setActiveTab] = useState<'playing' | 'queueing' | 'completion'>('playing')
   const [isRefreshingEarlyAccess, setIsRefreshingEarlyAccess] = useState(false)
+
+  // Handle Steam login callback
+  useEffect(() => {
+    const result = handleSteamCallback()
+    if (result.success && result.user) {
+      setToast(`欢迎，${result.user.username}！Steam 登录成功`)
+    } else if (result.error) {
+      setToast('Steam 登录失败，请重试')
+    }
+  }, [])
 
   // Fetch games on mount
   useEffect(() => {

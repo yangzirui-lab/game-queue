@@ -1,0 +1,11 @@
+{
+  "name": "game-gallery-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "@vercel/node": "^3.0.21",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.5"
+  }
+}

@@ -8,3 +8,14 @@ node_modules
 
 # 使用 npm，忽略 yarn
 yarn.lock
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+web/.env
+web/.env.local
+
+# Vercel
+.vercel
+.env*.local

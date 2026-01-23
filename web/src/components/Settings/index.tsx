@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { X, Save, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { X, Save, CheckCircle, XCircle, Loader2, LogOut } from 'lucide-react'
 import { githubService } from '../../services/github'
+import { getCurrentSteamUser, initiateSteamLogin, logoutSteam } from '../../services/steamAuth'
 import styles from './index.module.scss'
 
 interface SettingsProps {
@@ -13,6 +14,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [isTesting, setIsTesting] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [steamUser, setSteamUser] = useState(getCurrentSteamUser())
 
   const FIXED_OWNER = 'yangzirui-lab'
   const FIXED_REPO = 'game-gallery'
@@ -101,6 +103,15 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     }
   }
 
+  const handleSteamLogin = () => {
+    initiateSteamLogin()
+  }
+
+  const handleSteamLogout = () => {
+    logoutSteam()
+    setSteamUser(null)
+  }
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -108,87 +119,121 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           <X size={24} />
         </button>
 
-        <h2 className={styles.title}>GitHub 配置</h2>
+        <h2 className={styles.title}>设置</h2>
 
         <div className={styles.form}>
-          <div>
-            <label className={styles.label}>GitHub Token</label>
-            <input
-              type="password"
-              className={styles.inputPrimary}
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoFocus
-            />
-            <div className={styles.helpText}>
-              需要 <code>repo</code> 权限。
-              <a
-                href="https://github.com/settings/tokens/new"
-                target="_blank"
-                rel="noopener noreferrer"
+          {/* Steam 登录部分 */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Steam 账号（可选）</h3>
+            {steamUser ? (
+              <div className={styles.steamProfile}>
+                <img
+                  src={steamUser.avatar}
+                  alt={steamUser.username}
+                  className={styles.steamAvatar}
+                />
+                <div className={styles.steamInfo}>
+                  <div className={styles.steamUsername}>{steamUser.username}</div>
+                  <a
+                    href={steamUser.profileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.steamLink}
+                  >
+                    查看 Steam 主页
+                  </a>
+                </div>
+                <button onClick={handleSteamLogout} className={styles.btnLogout}>
+                  <LogOut size={18} />
+                  退出登录
+                </button>
+              </div>
+            ) : (
+              <div>
+                <button onClick={handleSteamLogin} className={styles.btnSteamLogin}>
+                  <img
+                    src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
+                    alt="Sign in through Steam"
+                    className={styles.steamLoginImage}
+                  />
+                </button>
+                <div className={styles.helpText}>显示个人资料信息</div>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.divider}></div>
+
+          {/* GitHub 配置部分 */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>GitHub 配置</h3>
+            <div>
+              <label className={styles.label}>GitHub Token</label>
+              <input
+                type="password"
+                className={styles.inputPrimary}
+                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+              <div className={styles.helpText}>
+                需要 <code>repo</code> 权限
+                <a
+                  href="https://github.com/settings/tokens/new"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  创建 Token
+                </a>
+              </div>
+            </div>
+
+            {errorMessage && <div className={styles.errorBox}>{errorMessage}</div>}
+
+            {testStatus === 'success' && (
+              <div className={styles.successBox}>
+                <CheckCircle size={18} />
+                连接成功！
+              </div>
+            )}
+
+            <div className={styles.actions}>
+              <button
+                onClick={handleTest}
+                disabled={isTesting || !token}
+                className={styles.btnTest}
               >
-                创建 Token
-              </a>
+                {isTesting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    测试中...
+                  </>
+                ) : testStatus === 'error' ? (
+                  <>
+                    <XCircle size={18} />
+                    重新测试
+                  </>
+                ) : (
+                  '测试连接'
+                )}
+              </button>
+
+              <button onClick={handleSave} disabled={isSaving || !token} className={styles.btnSave}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    保存中...
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} />
+                    保存
+                  </>
+                )}
+              </button>
             </div>
-          </div>
-
-          {errorMessage && <div className={styles.errorBox}>{errorMessage}</div>}
-
-          {testStatus === 'success' && (
-            <div className={styles.successBox}>
-              <CheckCircle size={18} />
-              连接成功！
-            </div>
-          )}
-
-          <div className={styles.actions}>
-            <button onClick={handleTest} disabled={isTesting || !token} className={styles.btnTest}>
-              {isTesting ? (
-                <>
-                  <Loader2 className="animate-spin" size={18} />
-                  测试中...
-                </>
-              ) : testStatus === 'error' ? (
-                <>
-                  <XCircle size={18} />
-                  重新测试
-                </>
-              ) : (
-                '测试连接'
-              )}
-            </button>
-
-            <button onClick={handleSave} disabled={isSaving || !token} className={styles.btnSave}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="animate-spin" size={18} />
-                  保存中...
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  保存
-                </>
-              )}
-            </button>
-          </div>
-
-          <div className={styles.instructions}>
-            <strong>配置步骤：</strong>
-            <ul>
-              <li>
-                创建一个 GitHub Personal Access Token（需要 <code>repo</code> 权限）
-              </li>
-              <li>
-                游戏数据将保存到 <code>yangzirui-lab/game-gallery</code> 仓库
-              </li>
-              <li>点击"测试连接"验证配置是否正确</li>
-              <li>
-                如果仓库不存在，需要先在 GitHub 创建 <code>game-gallery</code> 仓库
-              </li>
-            </ul>
           </div>
         </div>
       </div>
