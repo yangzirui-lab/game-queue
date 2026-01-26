@@ -103,11 +103,36 @@ export function logoutSteam(): void {
 
 /**
  * 初始化 Steam 登录
+ * 优先尝试在Steam客户端的内置浏览器中打开
  */
 export function initiateSteamLogin(): void {
-  // 重定向到 Vercel API 端点
   const loginUrl = `${API_BASE_URL}/api/auth/steam`
-  window.location.href = loginUrl
+
+  // 尝试在Steam客户端的内置浏览器中打开
+  const steamProtocolUrl = `steam://openurl/${encodeURIComponent(loginUrl)}`
+
+  // 检测Steam客户端是否成功打开
+  let blurred = false
+  const onBlur = () => {
+    blurred = true
+  }
+
+  // 尝试打开Steam客户端
+  window.location.href = steamProtocolUrl
+  window.addEventListener('blur', onBlur)
+
+  // 2秒后检查，如果Steam客户端未打开，则使用普通浏览器
+  setTimeout(() => {
+    window.removeEventListener('blur', onBlur)
+
+    if (!blurred) {
+      // Steam客户端未安装或未打开，使用普通浏览器
+      console.log('Steam客户端未检测到，使用浏览器登录')
+      window.location.href = loginUrl
+    } else {
+      console.log('已在Steam客户端中打开登录页面')
+    }
+  }, 2000)
 }
 
 /**
