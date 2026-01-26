@@ -1,19 +1,6 @@
 {
   "games": [
     {
-      "id": "1769425190534",
-      "name": "黑神话：悟空",
-      "status": "queueing",
-      "addedAt": "2026-01-26T10:59:50.534Z",
-      "lastUpdated": "2026-01-26T10:59:50.534Z",
-      "steamUrl": "https://store.steampowered.com/app/2358720",
-      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2358720/801e841a7975fc29967e30cf799084f4b2987b77/capsule_231x87_schinese.jpg?t=1760601605",
-      "positivePercentage": 97,
-      "totalReviews": 1189434,
-      "releaseDate": "2024 年 8 月 19 日",
-      "isEarlyAccess": false
-    },
-    {
       "id": "1769135748555",
       "name": "Light No Fire 无火之光",
       "status": "queueing",
