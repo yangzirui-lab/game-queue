@@ -1,6 +1,15 @@
 {
   "games": [
     {
+      "id": "1769427495505",
+      "name": "黑神话：悟空",
+      "status": "queueing",
+      "addedAt": "2026-01-26T11:38:15.505Z",
+      "lastUpdated": "2026-01-26T11:38:15.505Z",
+      "steamUrl": "https://store.steampowered.com/app/2358720",
+      "coverImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2358720/801e841a7975fc29967e30cf799084f4b2987b77/capsule_231x87_schinese.jpg?t=1760601605"
+    },
+    {
       "id": "1769135748555",
       "name": "Light No Fire 无火之光",
       "status": "queueing",
