@@ -6,7 +6,7 @@ import { SteamSearch } from '../components/SteamSearch'
 import { Settings } from '../components/Settings'
 import type { Game, GameStatus } from '../types'
 import { AnimatePresence, motion } from 'framer-motion'
-import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle, RefreshCw } from 'lucide-react'
+import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle } from 'lucide-react'
 import { githubService } from '../services/github'
 import { steamService } from '../services/steam'
 import { handleSteamCallback } from '../services/steamAuth'
@@ -21,7 +21,6 @@ function App() {
   const [showSteamSearch, setShowSteamSearch] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [activeTab, setActiveTab] = useState<'playing' | 'queueing' | 'completion'>('playing')
-  const [isRefreshingEarlyAccess, setIsRefreshingEarlyAccess] = useState(false)
 
   // Handle Steam login callback
   useEffect(() => {
@@ -106,7 +105,11 @@ function App() {
       const currentGames = gamesRef.current
       if (currentGames.length === 0) return
 
-      console.log('开始刷新游戏好评率...')
+      console.log(
+        prioritizeMissing
+          ? '开始刷新游戏信息（包含所有游戏的抢先体验状态）...'
+          : '开始刷新游戏好评率...'
+      )
 
       // 按优先级排序：缺少好评率的游戏优先
       let gamesToRefresh = [...currentGames]
@@ -132,9 +135,10 @@ function App() {
         const appId = parseInt(match[1])
 
         try {
-          // 只在缺少发布日期或抢先体验状态时才获取，因为这些数据不会频繁变动
-          // 对于已标记为抢先体验的游戏，也重新检测（确保游戏转正时能及时更新）
+          // 在首次刷新时，强制刷新所有游戏的抢先体验状态
+          // 在定期刷新时，只刷新缺少数据的游戏或已标记为抢先体验的游戏（确保游戏转正时能及时更新）
           const needsReleaseInfo =
+            prioritizeMissing ||
             !game.releaseDate ||
             game.isEarlyAccess === null ||
             game.isEarlyAccess === undefined ||
@@ -162,7 +166,8 @@ function App() {
             game.isEarlyAccess === undefined ||
             reviews.positivePercentage !== game.positivePercentage ||
             reviews.totalReviews !== game.totalReviews ||
-            (needsReleaseInfo && releaseInfo.releaseDate !== game.releaseDate)
+            (needsReleaseInfo && releaseInfo.releaseDate !== game.releaseDate) ||
+            (needsReleaseInfo && releaseInfo.isEarlyAccess !== game.isEarlyAccess)
 
           if (
             needsUpdate &&
@@ -193,7 +198,7 @@ function App() {
             )
 
             console.log(
-              `已更新 ${game.name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}`
+              `已更新 ${game.name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}, 抢先体验 ${releaseInfo.isEarlyAccess}`
             )
           }
         } catch (err) {
@@ -204,7 +209,9 @@ function App() {
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
 
-      console.log('好评率刷新完成')
+      console.log(
+        prioritizeMissing ? '游戏信息刷新完成（已刷新抢先体验状态）' : '好评率刷新完成'
+      )
 
       // 所有游戏刷新完成后，统一保存一次到 GitHub
       if (hasAnyUpdate) {
@@ -472,86 +479,6 @@ function App() {
     }
   }
 
-  const forceRefreshEarlyAccess = async () => {
-    if (isRefreshingEarlyAccess) {
-      setToast('正在刷新中，请稍候...')
-      return
-    }
-
-    setIsRefreshingEarlyAccess(true)
-    setToast('正在刷新抢先体验状态...')
-
-    let updatedCount = 0
-    const updatedGames = [...games]
-
-    for (let i = 0; i < games.length; i++) {
-      const game = games[i]
-      if (!game.steamUrl) continue
-
-      // 从 steamUrl 中提取 appId
-      const match = game.steamUrl.match(/\/app\/(\d+)/)
-      if (!match) continue
-
-      const appId = parseInt(match[1])
-
-      try {
-        const releaseInfo = await steamService.getGameReleaseDate(appId)
-
-        // 如果抢先体验状态有变化，更新
-        if (
-          releaseInfo.isEarlyAccess !== null &&
-          releaseInfo.isEarlyAccess !== game.isEarlyAccess
-        ) {
-          updatedGames[i] = {
-            ...updatedGames[i],
-            isEarlyAccess: releaseInfo.isEarlyAccess,
-            releaseDate: releaseInfo.releaseDate ?? updatedGames[i].releaseDate,
-            comingSoon: releaseInfo.comingSoon ?? updatedGames[i].comingSoon,
-          }
-          updatedCount++
-          console.log(`已更新 ${game.name} 的抢先体验状态: ${releaseInfo.isEarlyAccess}`)
-        }
-      } catch (err) {
-        console.error(`刷新 ${game.name} 抢先体验状态失败:`, err)
-      }
-
-      // 添加延迟避免请求过快
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-    }
-
-    // 更新状态
-    setGames(updatedGames)
-
-    // 保存到 GitHub
-    if (updatedCount > 0) {
-      try {
-        const finalGames = await githubService.concurrentUpdateGames((remoteGames) => {
-          return remoteGames.map((remoteGame) => {
-            const localUpdate = updatedGames.find((g) => g.id === remoteGame.id)
-            if (localUpdate) {
-              return {
-                ...remoteGame,
-                isEarlyAccess: localUpdate.isEarlyAccess,
-                releaseDate: localUpdate.releaseDate,
-                comingSoon: localUpdate.comingSoon,
-              }
-            }
-            return remoteGame
-          })
-        }, `Force refresh early access status (${updatedCount} games updated)`)
-
-        setGames(finalGames)
-        setToast(`抢先体验状态刷新完成，已更新 ${updatedCount} 个游戏`)
-      } catch (err) {
-        console.error('保存到 GitHub 失败:', err)
-        setToast('保存失败，请重试')
-      }
-    } else {
-      setToast('抢先体验状态刷新完成，无需更新')
-    }
-
-    setIsRefreshingEarlyAccess(false)
-  }
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
@@ -582,14 +509,6 @@ function App() {
           <SearchBar value={searchTerm} onSearch={handleSearch} />
           <button onClick={() => setShowSteamSearch(true)} className={styles.btnSteam}>
             从 Steam 添加
-          </button>
-          <button
-            onClick={forceRefreshEarlyAccess}
-            className={styles.btnSettings}
-            disabled={isRefreshingEarlyAccess}
-            title="刷新抢先体验状态"
-          >
-            <RefreshCw size={18} className={isRefreshingEarlyAccess ? 'animate-spin' : ''} />
           </button>
           <button onClick={() => setShowSettings(true)} className={styles.btnSettings} title="设置">
             <SettingsIcon size={18} />
