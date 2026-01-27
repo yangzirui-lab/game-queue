@@ -18,7 +18,7 @@ if (!(Test-Path ".\backend\.env")) {
     Write-Host "未找到 .env 文件，从示例创建..." -ForegroundColor Yellow
     Copy-Item ".\backend\.env.example" ".\backend\.env"
     Write-Host "请编辑 backend\.env 文件，配置您的 STEAM_API_KEY 等信息" -ForegroundColor Red
-    notepad ".\backend\.env"
+    notepad .\backend\.env
     Read-Host "配置完成后，按回车继续"
 }
 Write-Host "环境变量文件存在" -ForegroundColor Green

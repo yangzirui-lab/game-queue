@@ -28,7 +28,7 @@ Write-Host "`n[后端 2/5] 检查后端环境变量..." -ForegroundColor Cyan
 if (!(Test-Path ".\backend\.env")) {
     Copy-Item ".\backend\.env.example" ".\backend\.env"
     Write-Host "请编辑 backend\.env 文件，配置 STEAM_API_KEY 等信息" -ForegroundColor Red
-    notepad ".\backend\.env"
+    notepad .\backend\.env
     Read-Host "配置完成后，按回车继续"
 }
 Write-Host "后端环境变量配置完成" -ForegroundColor Green
