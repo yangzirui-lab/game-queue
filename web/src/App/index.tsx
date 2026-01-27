@@ -305,6 +305,7 @@ function App() {
       { id: '2048', name: '2048', description: '滑动方块合并相同数字，挑战达到 2048' },
       { id: 'memory', name: '记忆翻牌', description: '翻开卡片找出所有配对，挑战你的记忆力' },
       { id: 'tower', name: '塔防', description: '建造防御塔抵御敌人，通过三个关卡' },
+      { id: 'breakout', name: '打砖块', description: '经典街机游戏，用挡板接球打碎砖块' },
     ]
     miniGames.forEach((game) => {
       if (

@@ -3,6 +3,7 @@ import { SnakeGame } from './SnakeGame'
 import { Game2048 } from './Game2048'
 import { MemoryGame } from './MemoryGame'
 import { TowerDefense } from './TowerDefense'
+import { Breakout } from './Breakout'
 import styles from './index.module.scss'
 
 interface MiniGame {
@@ -41,6 +42,13 @@ const miniGames: MiniGame[] = [
     description: '建造防御塔抵御敌人，通过三个关卡',
     icon: '🗼',
     color: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+  },
+  {
+    id: 'breakout',
+    name: '打砖块',
+    description: '经典街机游戏，用挡板接球打碎砖块',
+    icon: '🧱',
+    color: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
   },
 ]
 
@@ -90,6 +98,7 @@ export const MiniGames: React.FC<MiniGamesProps> = ({ onClose: _onClose }) => {
       {activeGame === '2048' && <Game2048 onClose={handleCloseGame} />}
       {activeGame === 'memory' && <MemoryGame onClose={handleCloseGame} />}
       {activeGame === 'tower' && <TowerDefense onClose={handleCloseGame} />}
+      {activeGame === 'breakout' && <Breakout onClose={handleCloseGame} />}
     </>
   )
 }
