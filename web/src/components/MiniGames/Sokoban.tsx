@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styles from './Sokoban.module.scss'
 
 // 游戏常量
@@ -7,8 +7,6 @@ const EMPTY = 0
 const WALL = 1
 const TARGET = 2
 const BOX = 3
-const PLAYER = 4
-const BOX_ON_TARGET = 5
 
 interface Position {
   x: number
@@ -371,7 +369,7 @@ export const Sokoban: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             🔄 重置
           </button>
           <div className={styles.levelSelector}>
-            {LEVELS.map((level, index) => (
+            {LEVELS.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentLevel(index)}
