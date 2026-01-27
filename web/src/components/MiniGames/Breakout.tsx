@@ -241,39 +241,49 @@ export const Breakout: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         paddleXRef.current -= 7
       }
 
+      // 墙壁碰撞 - 左右边界
+      if (ball.x + ball.dx > CANVAS_WIDTH - BALL_RADIUS || ball.x + ball.dx < BALL_RADIUS) {
+        ball.dx = -ball.dx
+      }
+
+      // 墙壁碰撞 - 上边界
+      if (ball.y + ball.dy < BALL_RADIUS) {
+        ball.dy = -ball.dy
+      }
+
       // 移动球
       ball.x += ball.dx
       ball.y += ball.dy
 
-      // 墙壁碰撞
-      if (ball.x + ball.dx > CANVAS_WIDTH - BALL_RADIUS || ball.x + ball.dx < BALL_RADIUS) {
-        ball.dx = -ball.dx
+      // 挡板碰撞检测
+      if (
+        ball.y + BALL_RADIUS >= CANVAS_HEIGHT - PADDLE_HEIGHT &&
+        ball.y + BALL_RADIUS <= CANVAS_HEIGHT &&
+        ball.x >= paddleXRef.current &&
+        ball.x <= paddleXRef.current + PADDLE_WIDTH &&
+        ball.dy > 0
+      ) {
+        // 根据球击中挡板的位置改变反弹角度
+        const hitPos = (ball.x - paddleXRef.current) / PADDLE_WIDTH // 0 to 1
+        const angle = (hitPos - 0.5) * 120 * (Math.PI / 180) // -60 to 60 degrees
+        const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
+        ball.dx = speed * Math.sin(angle)
+        ball.dy = -Math.abs(speed * Math.cos(angle)) // 确保向上
       }
-      if (ball.y + ball.dy < BALL_RADIUS) {
-        ball.dy = -ball.dy
-      } else if (ball.y + ball.dy > CANVAS_HEIGHT - BALL_RADIUS) {
-        // 检测挡板碰撞
-        if (ball.x > paddleXRef.current && ball.x < paddleXRef.current + PADDLE_WIDTH) {
-          // 根据球击中挡板的位置改变反弹角度
-          const hitPos = (ball.x - paddleXRef.current) / PADDLE_WIDTH // 0 to 1
-          const angle = (hitPos - 0.5) * 120 * (Math.PI / 180) // -60 to 60 degrees
-          const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy)
-          ball.dx = speed * Math.sin(angle)
-          ball.dy = -speed * Math.cos(angle)
-        } else {
-          // 球掉落
-          setLives((prev) => {
-            const newLives = prev - 1
-            if (newLives <= 0) {
-              setGameStatus('lost')
-            } else {
-              setGameStatus('ready')
-              resetBallAndPaddle()
-            }
-            return newLives
-          })
-          return
-        }
+
+      // 球掉落检测
+      if (ball.y > CANVAS_HEIGHT + BALL_RADIUS) {
+        setLives((prev) => {
+          const newLives = prev - 1
+          if (newLives <= 0) {
+            setGameStatus('lost')
+          } else {
+            setGameStatus('ready')
+            resetBallAndPaddle()
+          }
+          return newLives
+        })
+        return
       }
 
       collisionDetection()
