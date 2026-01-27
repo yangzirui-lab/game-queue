@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import Matter from 'matter-js'
 import styles from './JumpJump.module.scss'
 
 // 游戏常量
@@ -8,23 +9,21 @@ const PLAYER_SIZE = 36
 const PLATFORM_WIDTH = 80
 const PLATFORM_HEIGHT = 16
 const MAX_POWER = 250
-const GRAVITY = 0.6
 const CENTER_BONUS_ZONE = 18
 
 interface Platform {
   x: number
   y: number
   width: number
+  body?: Matter.Body
 }
 
 interface Player {
-  x: number
-  y: number
-  vx: number
-  vy: number
+  body?: Matter.Body
   charging: boolean
   power: number
   onGround: boolean
+  lastPlatformIndex: number
 }
 
 export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -37,20 +36,18 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return saved ? parseInt(saved) : 0
   })
 
+  const engineRef = useRef<Matter.Engine | null>(null)
   const playerRef = useRef<Player>({
-    x: CANVAS_WIDTH / 2,
-    y: 300,
-    vx: 0,
-    vy: 0,
     charging: false,
     power: 0,
     onGround: false,
+    lastPlatformIndex: 0,
   })
-
   const platformsRef = useRef<Platform[]>([])
   const currentPlatformRef = useRef(0)
   const animationFrameRef = useRef<number | undefined>(undefined)
   const mouseDownRef = useRef(false)
+  const comboRef = useRef(0) // 使用 ref 存储 combo，避免依赖
 
   // 初始化平台
   const initPlatforms = useCallback(() => {
@@ -76,50 +73,188 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return platforms
   }, [])
 
-  // 初始化游戏
-  const initGame = useCallback(() => {
+  // 初始化物理引擎
+  const initPhysics = useCallback(() => {
+    // 创建物理引擎
+    const engine = Matter.Engine.create({
+      gravity: { x: 0, y: 0.6 },
+    })
+    engineRef.current = engine
+
+    // 生成平台
     const platforms = initPlatforms()
     platformsRef.current = platforms
 
-    playerRef.current = {
-      x: platforms[0].x + platforms[0].width / 2,
-      y: platforms[0].y - PLAYER_SIZE,
-      vx: 0,
-      vy: 0,
-      charging: false,
-      power: 0,
-      onGround: true,
-    }
+    // 为每个平台创建刚体（使用传感器模式）
+    platforms.forEach((platform) => {
+      const body = Matter.Bodies.rectangle(
+        platform.x + platform.width / 2,
+        platform.y + PLATFORM_HEIGHT / 2,
+        platform.width,
+        PLATFORM_HEIGHT,
+        {
+          isStatic: true,
+          isSensor: true, // 设置为传感器，只检测碰撞不产生物理响应
+          label: 'platform',
+        }
+      )
+      platform.body = body
+      Matter.World.add(engine.world, body)
+    })
+
+    // 创建玩家刚体
+    const startPlatform = platforms[0]
+    const playerBody = Matter.Bodies.circle(
+      startPlatform.x + startPlatform.width / 2,
+      startPlatform.y - PLAYER_SIZE / 2,
+      PLAYER_SIZE / 2,
+      {
+        friction: 0.001,
+        frictionAir: 0.02, // 空气阻力，模拟原版的 vx *= 0.98
+        restitution: 0,
+        density: 0.04,
+        label: 'player',
+      }
+    )
+    Matter.World.add(engine.world, playerBody)
+    playerRef.current.body = playerBody
+    playerRef.current.onGround = true
+    playerRef.current.lastPlatformIndex = 0
+
+    // 碰撞检测（使用传感器，需要手动控制位置）
+    Matter.Events.on(engine, 'collisionStart', (event) => {
+      event.pairs.forEach((pair) => {
+        const { bodyA, bodyB } = pair
+
+        // 检查是否是玩家与平台的碰撞
+        if (
+          (bodyA.label === 'player' && bodyB.label === 'platform') ||
+          (bodyB.label === 'player' && bodyA.label === 'platform')
+        ) {
+          const player = bodyA.label === 'player' ? bodyA : bodyB
+          const platform = bodyA.label === 'platform' ? bodyA : bodyB
+
+          // 找到对应的平台索引
+          const platformIndex = platformsRef.current.findIndex((p) => p.body === platform)
+          const platformData = platformsRef.current[platformIndex]
+
+          // 计算玩家底部和平台顶部的距离
+          const playerBottom = player.position.y + PLAYER_SIZE / 2
+          const platformTop = platformData.y
+
+          // 只有当玩家从上方落下，且接近平台顶部时才算落地
+          if (
+            player.velocity.y > 0 &&
+            !playerRef.current.onGround &&
+            playerBottom >= platformTop - 10 && // 提前一点触发，避免穿透
+            playerBottom <= platformTop + 10 &&
+            platformIndex > playerRef.current.lastPlatformIndex
+          ) {
+            // 记录落地瞬间的 X 位置
+            const landingX = player.position.x
+            const landingY = platformTop - PLAYER_SIZE / 2
+
+            // 立即设置为静态并移动到正确位置
+            Matter.Body.setStatic(player, true)
+            Matter.Body.setPosition(player, { x: landingX, y: landingY })
+            Matter.Body.setVelocity(player, { x: 0, y: 0 })
+            Matter.Body.setAngularVelocity(player, 0)
+
+            // 标记为在地面上
+            playerRef.current.onGround = true
+
+            // 检查是否落在中心
+            const centerX = platformData.x + platformData.width / 2
+            const distance = Math.abs(landingX - centerX)
+
+            if (distance <= CENTER_BONUS_ZONE) {
+              // 完美落点
+              const oldCombo = comboRef.current
+              const newCombo = oldCombo + 1
+              comboRef.current = newCombo
+              setCombo(newCombo)
+              setScore((prev) => prev + 2 + oldCombo) // 使用旧的 combo 值计算分数
+            } else {
+              // 普通落点
+              comboRef.current = 0
+              setCombo(0)
+              setScore((prev) => prev + 1)
+            }
+
+            playerRef.current.lastPlatformIndex = platformIndex
+            currentPlatformRef.current = platformIndex
+            addNewPlatform()
+          }
+        }
+      })
+    })
 
     currentPlatformRef.current = 0
+  }, [initPlatforms]) // 移除 combo 依赖，避免重复注册事件
+
+  // 添加新平台
+  const addNewPlatform = useCallback(() => {
+    if (!engineRef.current) return
+
+    const lastPlatform = platformsRef.current[platformsRef.current.length - 1]
+    const distance = 100 + Math.random() * 100
+    const angle = (Math.random() * 60 - 30) * (Math.PI / 180)
+
+    const newPlatform: Platform = {
+      x: lastPlatform.x + Math.cos(angle) * distance,
+      y: lastPlatform.y - 80 - Math.random() * 40,
+      width: 60 + Math.random() * 40,
+    }
+
+    // 创建物理刚体（传感器模式）
+    const body = Matter.Bodies.rectangle(
+      newPlatform.x + newPlatform.width / 2,
+      newPlatform.y + PLATFORM_HEIGHT / 2,
+      newPlatform.width,
+      PLATFORM_HEIGHT,
+      {
+        isStatic: true,
+        isSensor: true, // 传感器模式
+        label: 'platform',
+      }
+    )
+    newPlatform.body = body
+    Matter.World.add(engineRef.current.world, body)
+
+    platformsRef.current.push(newPlatform)
+
+    // 移除旧平台
+    if (platformsRef.current.length > 10) {
+      const oldPlatform = platformsRef.current.shift()
+      if (oldPlatform?.body) {
+        Matter.World.remove(engineRef.current.world, oldPlatform.body)
+      }
+      currentPlatformRef.current--
+      playerRef.current.lastPlatformIndex--
+    }
+  }, [])
+
+  // 初始化游戏
+  const initGame = useCallback(() => {
+    // 清理旧的物理世界
+    if (engineRef.current) {
+      Matter.Engine.clear(engineRef.current)
+      Matter.World.clear(engineRef.current.world, false)
+    }
+
+    initPhysics()
+    playerRef.current.charging = false
+    playerRef.current.power = 0
+    comboRef.current = 0 // 重置 combo ref
     setScore(0)
     setCombo(0)
-  }, [initPlatforms])
+  }, [initPhysics])
 
   // 开始游戏
   const startGame = useCallback(() => {
     initGame()
     setGameStatus('playing')
   }, [initGame])
-
-  // 添加新平台
-  const addNewPlatform = useCallback(() => {
-    const lastPlatform = platformsRef.current[platformsRef.current.length - 1]
-    const distance = 100 + Math.random() * 100
-    const angle = (Math.random() * 60 - 30) * (Math.PI / 180)
-
-    platformsRef.current.push({
-      x: lastPlatform.x + Math.cos(angle) * distance,
-      y: lastPlatform.y - 80 - Math.random() * 40,
-      width: 60 + Math.random() * 40,
-    })
-
-    // 移除旧平台
-    if (platformsRef.current.length > 10) {
-      platformsRef.current.shift()
-      currentPlatformRef.current--
-    }
-  }, [])
 
   // 绘制函数
   const draw = useCallback(() => {
@@ -129,12 +264,14 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const player = playerRef.current
+    if (!player.body) return
+
     // 圆角矩形辅助函数
     const drawRoundRect = (x: number, y: number, width: number, height: number, radius: number) => {
       if (typeof ctx.roundRect === 'function') {
         ctx.roundRect(x, y, width, height, radius)
       } else {
-        // 降级方案：手动绘制圆角矩形
         ctx.moveTo(x + radius, y)
         ctx.lineTo(x + width - radius, y)
         ctx.arcTo(x + width, y, x + width, y + radius, radius)
@@ -150,11 +287,11 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     // 清空画布
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
-    // 计算相机偏移（跟随玩家，保持玩家在屏幕中心）
-    const cameraX = playerRef.current.x - CANVAS_WIDTH / 2
-    const cameraY = playerRef.current.y - CANVAS_HEIGHT * 0.7
+    // 计算相机偏移（跟随玩家）
+    const cameraX = player.body.position.x - CANVAS_WIDTH / 2
+    const cameraY = player.body.position.y - CANVAS_HEIGHT * 0.7
 
-    // 绘制平台（圆角矩形）
+    // 绘制平台
     platformsRef.current.forEach((platform, index) => {
       const x = platform.x - cameraX
       const y = platform.y - cameraY
@@ -162,36 +299,51 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       if (x > -100 && x < CANVAS_WIDTH + 100 && y > -50 && y < CANVAS_HEIGHT + 50) {
         const radius = 8
 
-        // 绘制中心区域（背景，圆角）
-        const centerX = x + platform.width / 2
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'
-        ctx.beginPath()
-        drawRoundRect(
-          centerX - CENTER_BONUS_ZONE,
-          y,
-          CENTER_BONUS_ZONE * 2,
-          PLATFORM_HEIGHT,
-          radius
-        )
-        ctx.fill()
+        // 判断平台类型
+        const isCurrentPlatform = index === currentPlatformRef.current
+        const isNextPlatform = index === currentPlatformRef.current + 1
 
-        // 当前平台样式
-        if (index === currentPlatformRef.current) {
+        // 平台样式（先绘制底层）
+        if (isCurrentPlatform) {
+          // 当前平台：纯白色
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+        } else if (isNextPlatform) {
+          // 下一个平台：暗色
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
         } else {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'
+          // 其他平台：很暗
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
         }
 
-        // 绘制圆角矩形平台
+        // 绘制平台底层
         ctx.beginPath()
         drawRoundRect(x, y, platform.width, PLATFORM_HEIGHT, radius)
         ctx.fill()
+
+        // 绘制中心区域（只在下一个平台显示）
+        if (isNextPlatform) {
+          // 下一个平台的中心点：亮绿色高亮
+          const centerX = x + platform.width / 2
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.9)' // 亮绿色
+          ctx.shadowColor = 'rgba(34, 197, 94, 0.6)'
+          ctx.shadowBlur = 12
+          ctx.beginPath()
+          drawRoundRect(
+            centerX - CENTER_BONUS_ZONE,
+            y,
+            CENTER_BONUS_ZONE * 2,
+            PLATFORM_HEIGHT,
+            radius
+          )
+          ctx.fill()
+          ctx.shadowBlur = 0
+        }
       }
     })
 
     // 绘制玩家
-    const playerX = playerRef.current.x - cameraX
-    const playerY = playerRef.current.y - cameraY
+    const playerX = player.body.position.x - cameraX
+    const playerY = player.body.position.y - cameraY
     ctx.fillStyle = '#ffffff'
     ctx.beginPath()
     ctx.arc(playerX, playerY, PLAYER_SIZE / 2, 0, Math.PI * 2)
@@ -199,23 +351,21 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     ctx.closePath()
 
     // 绘制蓄力条
-    if (playerRef.current.charging) {
+    if (player.charging) {
       const barWidth = 50
       const barHeight = 4
       const barX = playerX - barWidth / 2
       const barY = playerY - PLAYER_SIZE - 10
 
-      // 背景
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
       ctx.fillRect(barX, barY, barWidth, barHeight)
 
-      // 蓄力进度
-      const powerRatio = playerRef.current.power / MAX_POWER
+      const powerRatio = player.power / MAX_POWER
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(barX, barY, barWidth * powerRatio, barHeight)
     }
 
-    // 绘制连击数（极简）
+    // 绘制连击数
     if (combo > 1) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
       ctx.font = '600 20px Arial'
@@ -223,60 +373,6 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       ctx.fillText(`${combo}x`, CANVAS_WIDTH / 2, 40)
     }
   }, [combo])
-
-  // 检查落点
-  const checkLanding = useCallback(() => {
-    const player = playerRef.current
-
-    // 只在下落时检测
-    if (player.vy <= 0) return false
-
-    for (let i = currentPlatformRef.current; i < platformsRef.current.length; i++) {
-      const platform = platformsRef.current[i]
-
-      // 检查水平范围（考虑球的半径）
-      const playerLeft = player.x - PLAYER_SIZE / 2
-      const playerRight = player.x + PLAYER_SIZE / 2
-      const platformLeft = platform.x
-      const platformRight = platform.x + platform.width
-
-      // 检查是否有水平重叠
-      if (playerRight > platformLeft && playerLeft < platformRight) {
-        // 检查垂直位置（球的底部与平台顶部）
-        const playerBottom = player.y + PLAYER_SIZE / 2
-        const platformTop = platform.y
-
-        // 如果球底部刚好在平台顶部附近
-        if (playerBottom >= platformTop && playerBottom <= platformTop + PLATFORM_HEIGHT + 5) {
-          // 成功落在平台上
-          player.y = platformTop - PLAYER_SIZE / 2
-          player.vx = 0
-          player.vy = 0
-          player.onGround = true
-
-          // 检查是否落在中心
-          const centerX = platform.x + platform.width / 2
-          const distance = Math.abs(player.x - centerX)
-
-          if (distance <= CENTER_BONUS_ZONE) {
-            // 完美落点
-            setCombo((prev) => prev + 1)
-            setScore((prev) => prev + 2 + combo)
-          } else {
-            // 普通落点
-            setCombo(0)
-            setScore((prev) => prev + 1)
-          }
-
-          currentPlatformRef.current = i
-          addNewPlatform()
-          return true
-        }
-      }
-    }
-
-    return false
-  }, [combo, addNewPlatform])
 
   // 游戏主循环
   useEffect(() => {
@@ -287,25 +383,24 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const gameLoop = () => {
       const player = playerRef.current
+      const engine = engineRef.current
+
+      if (!player.body || !engine) return
 
       // 蓄力
       if (player.charging && mouseDownRef.current) {
         player.power = Math.min(player.power + 5, MAX_POWER)
       }
 
-      // 物理更新
+      // 更新物理世界（只在玩家不在地面且不在蓄力时）
       if (!player.charging && !player.onGround) {
-        player.vx *= 0.98 // 空气阻力
-        player.vy += GRAVITY
-        player.x += player.vx
-        player.y += player.vy
+        Matter.Engine.update(engine, 1000 / 60)
+      }
 
-        // 检查落地
-        checkLanding()
-
-        // 检查失败（掉到最低平台下方很远）
+      // 检查失败（掉落太远）
+      if (platformsRef.current.length > 0) {
         const lowestPlatformY = Math.max(...platformsRef.current.map((p) => p.y))
-        if (player.y > lowestPlatformY + CANVAS_HEIGHT / 2) {
+        if (player.body.position.y > lowestPlatformY + CANVAS_HEIGHT / 2) {
           setGameStatus('over')
           if (score > bestScore) {
             setBestScore(score)
@@ -326,18 +421,21 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [gameStatus, draw, checkLanding, score, bestScore, combo])
+  }, [gameStatus, draw, score, bestScore, combo])
 
-  // 鼠标/触摸控制
+  // 处理跳跃
   const handleMouseDown = useCallback(() => {
     if (gameStatus !== 'playing') return
 
     const player = playerRef.current
-    // 只有在地面上才能蓄力
-    if (player.onGround && !player.charging) {
+    if (player.onGround && !player.charging && player.body) {
       player.charging = true
       player.power = 0
       mouseDownRef.current = true
+
+      // 停止物理更新，保持玩家静止
+      Matter.Body.setVelocity(player.body, { x: 0, y: 0 })
+      Matter.Body.setStatic(player.body, true)
     }
   }, [gameStatus])
 
@@ -345,14 +443,19 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (gameStatus !== 'playing') return
 
     const player = playerRef.current
-    if (player.charging) {
-      // 根据蓄力跳跃
-      const angle = -75 * (Math.PI / 180) // 固定角度向前上方
-      const power = Math.max(player.power / MAX_POWER, 0.3) // 最小30%力度
-      const jumpForce = 8 + power * 12
+    if (player.charging && player.body) {
+      // 计算跳跃力度
+      const angle = -75 * (Math.PI / 180)
+      const power = Math.max(player.power / MAX_POWER, 0.3)
+      const jumpForce = 6 + power * 9 // 降低跳跃高度
 
-      player.vx = Math.cos(angle) * jumpForce
-      player.vy = Math.sin(angle) * jumpForce
+      // 恢复动态状态并施加速度
+      Matter.Body.setStatic(player.body, false)
+      Matter.Body.setVelocity(player.body, {
+        x: Math.cos(angle) * jumpForce,
+        y: Math.sin(angle) * jumpForce,
+      })
+
       player.charging = false
       player.power = 0
       player.onGround = false
@@ -416,6 +519,13 @@ export const JumpJump: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   // 初始化
   useEffect(() => {
     initGame()
+
+    return () => {
+      // 清理物理引擎
+      if (engineRef.current) {
+        Matter.Engine.clear(engineRef.current)
+      }
+    }
   }, [initGame])
 
   return (

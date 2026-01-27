@@ -41,13 +41,20 @@ export const Game2048: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return null
   }
 
-  function move(board: Board, direction: Direction): { newBoard: Board; moved: boolean; scoreGained: number; mergedPositions: Set<string> } {
+  function move(
+    board: Board,
+    direction: Direction
+  ): { newBoard: Board; moved: boolean; scoreGained: number; mergedPositions: Set<string> } {
     const newBoard = board.map((row) => [...row])
     let moved = false
     let scoreGained = 0
     const mergedPositions = new Set<string>()
 
-    const moveLeft = (row: number[], rowIndex: number, isVertical: boolean): { row: number[]; score: number } => {
+    const moveLeft = (
+      row: number[],
+      rowIndex: number,
+      isVertical: boolean
+    ): { row: number[]; score: number } => {
       const filtered = row.filter((val) => val !== 0)
       let score = 0
       const merged: number[] = []
@@ -302,19 +309,29 @@ export const Game2048: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               const isNew = newTiles.has(tileKey)
 
               // 只有新生成的方块才有.filled动画，合并的方块只有.merged动画
-              const tileClasses = [
-                styles.tile,
-                isNew && styles.filled,
-                isMerged && styles.merged
-              ].filter(Boolean).join(' ')
+              const tileClasses = [styles.tile, isNew && styles.filled, isMerged && styles.merged]
+                .filter(Boolean)
+                .join(' ')
+
+              // 根据数字大小调整字体
+              const getFontSize = (val: number) => {
+                if (val === 0) return '2rem'
+                const digits = val.toString().length
+                if (digits <= 3) return '2rem'
+                if (digits === 4) return '1.75rem'
+                if (digits === 5) return '1.5rem'
+                return '1.25rem'
+              }
 
               return (
                 <div
                   key={tileKey}
                   className={tileClasses}
                   style={{
-                    backgroundColor: value !== 0 ? getTileColor(value) : 'rgba(238, 228, 218, 0.35)',
+                    backgroundColor:
+                      value !== 0 ? getTileColor(value) : 'rgba(238, 228, 218, 0.35)',
                     color: getTileTextColor(value),
+                    fontSize: getFontSize(value),
                   }}
                 >
                   {value !== 0 && value}

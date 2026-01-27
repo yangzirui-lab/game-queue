@@ -307,6 +307,7 @@ function App() {
       { id: 'flappy', name: 'Flappy Bird', description: '点击屏幕控制小鸟飞行，躲避管道障碍' },
       { id: 'match3', name: '连连看', description: '找到相同图案配对消除，挑战你的眼力' },
       { id: 'jump', name: '跳一跳', description: '长按蓄力跳跃，落在中心获得连击加分' },
+      { id: 'fruit', name: '接水果', description: '控制篮子接住水果得分，躲避炸弹' },
     ]
     miniGames.forEach((game) => {
       if (

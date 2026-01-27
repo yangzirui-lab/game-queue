@@ -52,18 +52,25 @@
 }
 
 .scoreBoard {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
   align-items: center;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .score {
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
 
 .pauseBtn {
@@ -86,7 +93,8 @@
   border: 2px solid #333;
   border-radius: 8px;
   margin: 0 auto;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 20px 20px;
 }
