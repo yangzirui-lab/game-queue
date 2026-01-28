@@ -93,26 +93,26 @@ Write-Host ""
 Write-Host "To allow external access, configure your cloud provider's security group:" -ForegroundColor Yellow
 Write-Host ""
 
-Write-Host "Aliyun (阿里云):" -ForegroundColor Cyan
+Write-Host "Aliyun:" -ForegroundColor Cyan
 Write-Host "  1. Login to console: https://ecs.console.aliyun.com/" -ForegroundColor White
-Write-Host "  2. Go to: 网络与安全 > 安全组" -ForegroundColor White
-Write-Host "  3. Click your security group > 配置规则 > 添加安全组规则" -ForegroundColor White
+Write-Host "  2. Go to: Network & Security > Security Groups" -ForegroundColor White
+Write-Host "  3. Click your security group > Configure Rules > Add Security Group Rule" -ForegroundColor White
 Write-Host "  4. Add rule:" -ForegroundColor White
-Write-Host "     - 规则方向: 入方向" -ForegroundColor Gray
-Write-Host "     - 授权策略: 允许" -ForegroundColor Gray
-Write-Host "     - 协议类型: TCP" -ForegroundColor Gray
-Write-Host "     - 端口范围: 80/80" -ForegroundColor Gray
-Write-Host "     - 授权对象: 0.0.0.0/0" -ForegroundColor Gray
+Write-Host "     - Direction: Inbound" -ForegroundColor Gray
+Write-Host "     - Policy: Allow" -ForegroundColor Gray
+Write-Host "     - Protocol: TCP" -ForegroundColor Gray
+Write-Host "     - Port Range: 80/80" -ForegroundColor Gray
+Write-Host "     - Authorization: 0.0.0.0/0" -ForegroundColor Gray
 Write-Host ""
 
-Write-Host "Tencent Cloud (腾讯云):" -ForegroundColor Cyan
+Write-Host "Tencent Cloud:" -ForegroundColor Cyan
 Write-Host "  1. Login to console: https://console.cloud.tencent.com/cvm" -ForegroundColor White
-Write-Host "  2. Go to: 安全组" -ForegroundColor White
-Write-Host "  3. Click 修改规则 > 入站规则 > 添加规则" -ForegroundColor White
+Write-Host "  2. Go to: Security Groups" -ForegroundColor White
+Write-Host "  3. Click Modify Rules > Inbound Rules > Add Rule" -ForegroundColor White
 Write-Host "  4. Add rule:" -ForegroundColor White
-Write-Host "     - 类型: HTTP(80)" -ForegroundColor Gray
-Write-Host "     - 来源: 0.0.0.0/0" -ForegroundColor Gray
-Write-Host "     - 策略: 允许" -ForegroundColor Gray
+Write-Host "     - Type: HTTP(80)" -ForegroundColor Gray
+Write-Host "     - Source: 0.0.0.0/0" -ForegroundColor Gray
+Write-Host "     - Policy: Allow" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "AWS:" -ForegroundColor Cyan
