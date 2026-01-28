@@ -27,10 +27,14 @@ corner_radius_bottom_left = 3
 script = ExtResource("1")
 
 [node name="TopPanel" type="PanelContainer" parent="."]
-offset_left = 12.0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
 offset_top = 12.0
-offset_right = 180.0
+offset_right = -12.0
 offset_bottom = 156.0
+grow_horizontal = 0
 theme_override_styles/panel = SubResource("panel_style")
 
 [node name="VBox" type="VBoxContainer" parent="TopPanel"]
