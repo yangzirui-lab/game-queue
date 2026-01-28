@@ -81,19 +81,22 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'Deploy frontend build ${{ github.sha }}'
 
-      # 通过SSH推送前端文件到服务器
+      # 压缩前端文件
+      - name: Compress Frontend Files
+        run: tar -czf frontend.tar.gz -C ./web/dist .
+
+      # 通过SSH推送压缩包到服务器
       - name: Push Frontend to Server
-        uses: appleboy/scp-action@master
-        continue-on-error: true
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "./web/dist/"
-          target: "/opt/game-gallery/web/"
-          strip_components: 0
-          rm: false
+          source: "frontend.tar.gz"
+          target: "/tmp/"
+          timeout: 5m
+          command_timeout: 5m
 
       # 通过SSH部署配置文件和启动服务
       - name: Deploy to Linux Server
@@ -108,6 +111,17 @@ jobs:
             # 创建部署目录
             mkdir -p /opt/game-gallery/backend
             cd /opt/game-gallery
+
+            # 解压前端文件
+            if [ -f /tmp/frontend.tar.gz ]; then
+              echo "Extracting frontend files..."
+              mkdir -p /opt/game-gallery/web/dist
+              tar -xzf /tmp/frontend.tar.gz -C /opt/game-gallery/web/dist/
+              rm -f /tmp/frontend.tar.gz
+              echo "✅ Frontend files extracted"
+            else
+              echo "⚠️  Frontend archive not found, skipping..."
+            fi
 
             # 下载/更新配置文件
             echo "Updating docker-compose.yml..."
