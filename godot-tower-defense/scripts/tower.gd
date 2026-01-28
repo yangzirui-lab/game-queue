@@ -73,11 +73,15 @@ func shoot():
 	bullet.target = current_target
 	bullet.damage = damage
 	bullet.speed = bullet_speed
-	get_parent().add_child(bullet)
+	# 添加到场景根节点，确保正确的碰撞检测
+	get_tree().root.get_node("Main").add_child(bullet)
+
+	print("塔开火! 目标:", current_target.name, " 伤害:", damage)
 
 	# 开火粒子效果
 	var muzzle_flash = $Turret/Muzzle/MuzzleFlash
-	muzzle_flash.emitting = true
+	if muzzle_flash:
+		muzzle_flash.emitting = true
 
 func _on_enemy_entered_range(body):
 	if body.is_in_group("enemies") and current_target == null:

@@ -1,188 +1,82 @@
-[gd_scene load_steps=8 format=3 uid="uid://ui_scene"]
+[gd_scene load_steps=5 format=3 uid="uid://ui_scene"]
 
 [ext_resource type="Script" path="res://scripts/ui.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="panel_style"]
-bg_color = Color(0.1, 0.1, 0.12, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.5, 0.7, 0.8)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 4
-shadow_color = Color(0, 0, 0, 0.5)
-
-[sub_resource type="StyleBoxFlat" id="stat_panel_style"]
-bg_color = Color(0.15, 0.15, 0.18, 0.8)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.3, 0.3, 0.35, 0.6)
+bg_color = Color(0.08, 0.08, 0.1, 0.92)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="button_normal"]
-bg_color = Color(0.2, 0.4, 0.6, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.5, 0.8, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+bg_color = Color(0.15, 0.15, 0.17, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="button_hover"]
-bg_color = Color(0.25, 0.5, 0.75, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4, 0.6, 0.9, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_size = 2
-shadow_color = Color(0.3, 0.5, 0.8, 0.5)
-
-[sub_resource type="StyleBoxFlat" id="button_pressed"]
-bg_color = Color(0.15, 0.35, 0.55, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.2, 0.4, 0.7, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="gameover_panel_style"]
-bg_color = Color(0.1, 0.1, 0.12, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.8, 0.3, 0.3, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_size = 8
-shadow_color = Color(0, 0, 0, 0.7)
+bg_color = Color(0.22, 0.22, 0.25, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="UI" type="CanvasLayer"]
 script = ExtResource("1")
 
 [node name="TopPanel" type="PanelContainer" parent="."]
-offset_left = 15.0
-offset_top = 15.0
-offset_right = 265.0
-offset_bottom = 200.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 180.0
+offset_bottom = 156.0
 theme_override_styles/panel = SubResource("panel_style")
 
-[node name="MarginContainer" type="MarginContainer" parent="TopPanel"]
+[node name="VBox" type="VBoxContainer" parent="TopPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 15
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 15
-theme_override_constants/margin_bottom = 12
+theme_override_constants/separation = 4
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TopPanel/MarginContainer"]
+[node name="MoneyLabel" type="Label" parent="TopPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "$200"
 
-[node name="Title" type="Label" parent="TopPanel/MarginContainer/VBoxContainer"]
+[node name="LivesLabel" type="Label" parent="TopPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 20
-text = "🏰 塔防指挥中心"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "♥ 20"
 
-[node name="HSeparator" type="HSeparator" parent="TopPanel/MarginContainer/VBoxContainer"]
+[node name="WaveLabel" type="Label" parent="TopPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "Wave 1"
 
-[node name="StatsContainer" type="VBoxContainer" parent="TopPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="MoneyPanel" type="PanelContainer" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("stat_panel_style")
-
-[node name="MoneyLabel" type="Label" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer/MoneyPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 16
-text = "💰 金钱: 200"
-
-[node name="LivesPanel" type="PanelContainer" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("stat_panel_style")
-
-[node name="LivesLabel" type="Label" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer/LivesPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 16
-text = "❤️  生命: 20"
-
-[node name="WavePanel" type="PanelContainer" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("stat_panel_style")
-
-[node name="WaveLabel" type="Label" parent="TopPanel/MarginContainer/VBoxContainer/StatsContainer/WavePanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "🌊 波次: 1"
-
-[node name="HSeparator2" type="HSeparator" parent="TopPanel/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="TopPanel/VBox"]
 layout_mode = 2
 
-[node name="TowersLabel" type="Label" parent="TopPanel/MarginContainer/VBoxContainer"]
+[node name="Tower1Button" type="Button" parent="TopPanel/VBox"]
+custom_minimum_size = Vector2(150, 32)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
-theme_override_font_sizes/font_size = 14
-text = "建造防御塔："
-horizontal_alignment = 1
-
-[node name="TowerButtons" type="VBoxContainer" parent="TopPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Tower1Button" type="Button" parent="TopPanel/MarginContainer/VBoxContainer/TowerButtons"]
-custom_minimum_size = Vector2(200, 35)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
-theme_override_styles/pressed = SubResource("button_pressed")
-text = "⚔️  基础塔 ($50)"
+theme_override_styles/pressed = SubResource("button_normal")
+text = "Tower  $50"
 
-[node name="Tower2Button" type="Button" parent="TopPanel/MarginContainer/VBoxContainer/TowerButtons"]
-custom_minimum_size = Vector2(200, 35)
+[node name="Tower2Button" type="Button" parent="TopPanel/VBox"]
+custom_minimum_size = Vector2(150, 32)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
-theme_override_styles/pressed = SubResource("button_pressed")
-text = "⚡ 快速塔 ($100)"
+theme_override_styles/pressed = SubResource("button_normal")
+text = "Fast  $100"
 
 [node name="GameOverPanel" type="PanelContainer" parent="."]
 visible = false
@@ -191,50 +85,35 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -100.0
-offset_right = 200.0
-offset_bottom = 100.0
+offset_left = -140.0
+offset_top = -80.0
+offset_right = 140.0
+offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("gameover_panel_style")
+theme_override_styles/panel = SubResource("panel_style")
 
-[node name="MarginContainer" type="MarginContainer" parent="GameOverPanel"]
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="GameOverPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Title" type="Label" parent="GameOverPanel/MarginContainer/VBoxContainer"]
+[node name="Title" type="Label" parent="GameOverPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 32
-text = "💀 游戏结束"
+theme_override_colors/font_color = Color(0.95, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 28
+text = "DEFEATED"
 horizontal_alignment = 1
 
-[node name="Message" type="Label" parent="GameOverPanel/MarginContainer/VBoxContainer"]
+[node name="RestartButton" type="Button" parent="GameOverPanel/VBox"]
+custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 theme_override_font_sizes/font_size = 16
-text = "敌人突破了你的防线！"
-horizontal_alignment = 1
-
-[node name="RestartButton" type="Button" parent="GameOverPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(200, 45)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
-theme_override_styles/pressed = SubResource("button_pressed")
-text = "🔄 重新开始"
+text = "Restart"
 
-[connection signal="pressed" from="TopPanel/MarginContainer/VBoxContainer/TowerButtons/Tower1Button" to="." method="_on_tower1_button_pressed"]
-[connection signal="pressed" from="TopPanel/MarginContainer/VBoxContainer/TowerButtons/Tower2Button" to="." method="_on_tower2_button_pressed"]
-[connection signal="pressed" from="GameOverPanel/MarginContainer/VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="TopPanel/VBox/Tower1Button" to="." method="_on_tower1_button_pressed"]
+[connection signal="pressed" from="TopPanel/VBox/Tower2Button" to="." method="_on_tower2_button_pressed"]
+[connection signal="pressed" from="GameOverPanel/VBox/RestartButton" to="." method="_on_restart_button_pressed"]
