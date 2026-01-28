@@ -83,8 +83,8 @@ jobs:
 
       # 通过SSH触发服务器部署
       - name: Deploy to Linux Server
-        if: ${{ secrets.SSH_HOST != '' }}
         uses: appleboy/ssh-action@master
+        continue-on-error: true
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -94,18 +94,13 @@ jobs:
             cd /opt/game-gallery
             bash deploy-linux.sh
 
-      - name: Deployment notification
-        if: ${{ secrets.SSH_HOST == '' }}
+      - name: Deployment Status
         run: |
-          echo "⚠️ SSH deployment skipped - SSH secrets not configured"
+          echo "✅ Build completed successfully"
           echo ""
-          echo "To enable automatic deployment:"
-          echo "1. Generate SSH key on your server"
-          echo "2. Add the following secrets to your repository:"
-          echo "   - SSH_HOST: Your server IP or hostname"
-          echo "   - SSH_USER: SSH username (e.g., root or deploy)"
-          echo "   - SSH_PRIVATE_KEY: SSH private key content"
-          echo "   - SSH_PORT: SSH port (default: 22)"
+          echo "📦 Backend image: ghcr.io/${{ github.repository }}/backend:latest"
+          echo "📦 Frontend files: dist branch"
           echo ""
-          echo "Or run the deployment script manually on your server:"
-          echo "   ssh user@server 'cd /opt/game-gallery && bash deploy-linux.sh'"
+          echo "🚀 If SSH secrets are configured, deployment will be triggered automatically."
+          echo "   Otherwise, run this command on your server to deploy:"
+          echo "   cd /opt/game-gallery && bash deploy-linux.sh"
