@@ -90,10 +90,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "./web/dist/*"
+          source: "./web/dist/"
           target: "/opt/game-gallery/web/"
-          strip_components: 2
-          rm: true
+          strip_components: 0
+          rm: false
 
       # 通过SSH部署配置文件和启动服务
       - name: Deploy to Linux Server
