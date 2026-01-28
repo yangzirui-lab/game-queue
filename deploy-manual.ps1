@@ -124,10 +124,6 @@ try {
                 </rule>
             </rules>
         </rewrite>
-        <staticContent>
-            <mimeMap fileExtension=".json" mimeType="application/json" />
-            <mimeMap fileExtension=".js" mimeType="application/javascript" />
-        </staticContent>
         <httpErrors errorMode="Custom" existingResponse="Replace">
             <remove statusCode="404" />
             <error statusCode="404" path="/" responseMode="ExecuteURL" />

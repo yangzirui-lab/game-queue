@@ -80,10 +80,6 @@ if ($rewriteModule) {
                 </rule>
             </rules>
         </rewrite>
-        <staticContent>
-            <mimeMap fileExtension=".json" mimeType="application/json" />
-            <mimeMap fileExtension=".js" mimeType="application/javascript" />
-        </staticContent>
         <httpErrors errorMode="Custom" existingResponse="Replace">
             <remove statusCode="404" />
             <error statusCode="404" path="/" responseMode="ExecuteURL" />
@@ -98,10 +94,6 @@ if ($rewriteModule) {
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <system.webServer>
-        <staticContent>
-            <mimeMap fileExtension=".json" mimeType="application/json" />
-            <mimeMap fileExtension=".js" mimeType="application/javascript" />
-        </staticContent>
         <httpErrors errorMode="Detailed" />
         <defaultDocument>
             <files>
