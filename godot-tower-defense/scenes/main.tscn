@@ -22,7 +22,7 @@ script = ExtResource("1")
 environment = SubResource("environment_1")
 
 [node name="Background" type="Polygon2D" parent="."]
-color = Color(0.18, 0.25, 0.22, 1)
+color = Color(0.2, 0.18, 0.28, 1)
 polygon = PackedVector2Array(0, 0, 800, 0, 800, 600, 0, 600)
 
 [node name="Path2D" type="Path2D" parent="."]
@@ -31,7 +31,7 @@ curve = SubResource("curve_1")
 [node name="PathLine" type="Line2D" parent="Path2D"]
 points = PackedVector2Array(50, 100, 300, 100, 300, 400, 600, 400, 600, 200, 750, 200)
 width = 50.0
-default_color = Color(0.25, 0.25, 0.28, 1)
+default_color = Color(0.3, 0.85, 0.7, 1)
 joint_mode = 2
 begin_cap_mode = 2
 end_cap_mode = 2
@@ -39,7 +39,7 @@ end_cap_mode = 2
 [node name="PathOutline" type="Line2D" parent="Path2D"]
 points = PackedVector2Array(50, 100, 300, 100, 300, 400, 600, 400, 600, 200, 750, 200)
 width = 54.0
-default_color = Color(0.15, 0.15, 0.18, 0.8)
+default_color = Color(0.15, 0.4, 0.35, 0.9)
 joint_mode = 2
 begin_cap_mode = 2
 end_cap_mode = 2

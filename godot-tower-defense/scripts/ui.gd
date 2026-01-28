@@ -1,8 +1,8 @@
 extends CanvasLayer
 
-@onready var money_label = $TopPanel/VBox/MoneyLabel
-@onready var lives_label = $TopPanel/VBox/LivesLabel
-@onready var wave_label = $TopPanel/VBox/WaveLabel
+@onready var money_label = $TopLeftPanel/VBox/MoneyLabel
+@onready var lives_label = $TopLeftPanel/VBox/LivesLabel
+@ontml:parameter name="wave_label = $WavePanel/WaveLabel
 @onready var game_over_panel = $GameOverPanel
 
 func _ready():
