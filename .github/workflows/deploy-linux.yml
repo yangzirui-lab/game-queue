@@ -91,7 +91,35 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
+            # 创建部署目录（如果不存在）
+            mkdir -p /opt/game-gallery
             cd /opt/game-gallery
+
+            # 下载部署脚本（如果不存在）
+            if [ ! -f deploy-linux.sh ]; then
+              echo "Initializing deployment environment..."
+              curl -fsSL -o deploy-linux.sh https://raw.githubusercontent.com/yangzirui-lab/game-gallery/main/deploy-linux.sh
+              chmod +x deploy-linux.sh
+            fi
+
+            # 下载配置文件（如果不存在）
+            if [ ! -f docker-compose.yml ]; then
+              curl -fsSL -o docker-compose.yml https://raw.githubusercontent.com/yangzirui-lab/game-gallery/main/docker-compose.yml
+            fi
+
+            if [ ! -f nginx-prod.conf ]; then
+              curl -fsSL -o nginx-prod.conf https://raw.githubusercontent.com/yangzirui-lab/game-gallery/main/nginx-prod.conf
+            fi
+
+            # 检查后端环境变量文件
+            if [ ! -f backend/.env ]; then
+              echo "⚠️  WARNING: backend/.env not found!"
+              echo "Please create /opt/game-gallery/backend/.env with required configuration"
+              echo "See backend/.env.example for reference"
+              exit 1
+            fi
+
+            # 执行部署
             bash deploy-linux.sh
 
       - name: Deployment Status
