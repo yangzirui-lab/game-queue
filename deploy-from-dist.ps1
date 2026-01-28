@@ -1,15 +1,14 @@
-# Manual Deployment Script for Windows Server
-# Run this script on the server to deploy the latest version
-# Please run this script as Administrator
+# Deploy from dist branch
+# This script pulls pre-built files from the dist branch and deploys to IIS
+# Run this script on the server as Administrator
 
 param(
-    [string]$RepoPath = "C:\Users\Administrator\code\game-gallery",
     [string]$IISPath = "C:\inetpub\wwwroot\game-gallery",
-    [string]$Branch = "main"
+    [string]$TempPath = "C:\Temp\game-gallery-deploy"
 )
 
 Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "Game Gallery Manual Deployment" -ForegroundColor Cyan
+Write-Host "Deploy from dist branch" -ForegroundColor Cyan
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -22,67 +21,29 @@ if (-not $isAdmin) {
     Write-Host ""
 }
 
-# Step 1: Navigate to repository
-Write-Host "[1/5] Checking repository..." -ForegroundColor Yellow
-if (-not (Test-Path $RepoPath)) {
-    Write-Host "ERROR: Repository not found at $RepoPath" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Please clone the repository first:" -ForegroundColor Yellow
-    Write-Host "  git clone https://github.com/yangzirui-lab/game-gallery.git $RepoPath" -ForegroundColor Cyan
-    exit 1
+# Step 1: Create temp directory
+Write-Host "[1/4] Preparing temporary directory..." -ForegroundColor Yellow
+if (Test-Path $TempPath) {
+    Remove-Item -Path $TempPath -Recurse -Force
 }
+New-Item -ItemType Directory -Path $TempPath -Force | Out-Null
+Write-Host "OK Temp directory ready: $TempPath" -ForegroundColor Green
 
-Set-Location $RepoPath
-Write-Host "OK Repository found: $RepoPath" -ForegroundColor Green
-
-# Step 2: Pull latest code
+# Step 2: Clone dist branch
 Write-Host ""
-Write-Host "[2/5] Pulling latest code from GitHub..." -ForegroundColor Yellow
+Write-Host "[2/4] Downloading files from dist branch..." -ForegroundColor Yellow
 try {
-    git fetch origin
-    git checkout $Branch
-    git pull origin $Branch
-    Write-Host "OK Code updated successfully" -ForegroundColor Green
+    Set-Location $TempPath
+    git clone --branch dist --depth 1 https://github.com/yangzirui-lab/game-gallery.git .
+    Write-Host "OK Files downloaded successfully" -ForegroundColor Green
 } catch {
-    Write-Host "ERROR: Failed to pull code: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "ERROR: Failed to download files: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
-# Step 3: Install dependencies and build
+# Step 3: Deploy to IIS
 Write-Host ""
-Write-Host "[3/5] Building frontend..." -ForegroundColor Yellow
-$webPath = Join-Path $RepoPath "web"
-
-if (-not (Test-Path $webPath)) {
-    Write-Host "ERROR: Web directory not found: $webPath" -ForegroundColor Red
-    exit 1
-}
-
-Set-Location $webPath
-
-try {
-    Write-Host "Installing dependencies..." -ForegroundColor Cyan
-    npm install
-    Write-Host "OK Dependencies installed" -ForegroundColor Green
-
-    Write-Host "Building project for IIS (base path: /)..." -ForegroundColor Cyan
-    $env:VITE_BASE_PATH = "/"
-    npm run build
-    Write-Host "OK Build completed" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: Build failed: $($_.Exception.Message)" -ForegroundColor Red
-    exit 1
-}
-
-# Step 4: Deploy to IIS
-Write-Host ""
-Write-Host "[4/5] Deploying to IIS..." -ForegroundColor Yellow
-
-$distPath = Join-Path $webPath "dist"
-if (-not (Test-Path $distPath)) {
-    Write-Host "ERROR: Build output not found: $distPath" -ForegroundColor Red
-    exit 1
-}
+Write-Host "[3/4] Deploying to IIS..." -ForegroundColor Yellow
 
 # Create IIS directory if not exists
 if (-not (Test-Path $IISPath)) {
@@ -99,11 +60,12 @@ try {
     if ($website) {
         Stop-Website -Name $siteName -ErrorAction SilentlyContinue
         Write-Host "Stopped website: $siteName" -ForegroundColor Cyan
+        Start-Sleep -Seconds 2
     }
 
     # Copy files
     Write-Host "Copying files to IIS directory..." -ForegroundColor Cyan
-    Copy-Item -Path "$distPath\*" -Destination $IISPath -Recurse -Force
+    Copy-Item -Path "$TempPath\*" -Destination $IISPath -Recurse -Force
     Write-Host "OK Files deployed to: $IISPath" -ForegroundColor Green
 
     # Create web.config for SPA routing
@@ -139,9 +101,9 @@ try {
     exit 1
 }
 
-# Step 5: Restart IIS website
+# Step 4: Restart IIS website and cleanup
 Write-Host ""
-Write-Host "[5/5] Restarting IIS website..." -ForegroundColor Yellow
+Write-Host "[4/4] Finalizing..." -ForegroundColor Yellow
 
 try {
     if ($website) {
@@ -149,11 +111,17 @@ try {
         Write-Host "OK Website started: $siteName" -ForegroundColor Green
     } else {
         Write-Host "WARNING: Website '$siteName' not found in IIS" -ForegroundColor Yellow
-        Write-Host "Please create the website manually or run setup-windows-server.ps1" -ForegroundColor Yellow
+        Write-Host "Please create the website manually" -ForegroundColor Yellow
     }
 } catch {
     Write-Host "WARNING: Failed to restart website: $($_.Exception.Message)" -ForegroundColor Yellow
 }
+
+# Cleanup
+Write-Host "Cleaning up temporary files..." -ForegroundColor Cyan
+Set-Location C:\
+Remove-Item -Path $TempPath -Recurse -Force -ErrorAction SilentlyContinue
+Write-Host "OK Cleanup completed" -ForegroundColor Green
 
 # Display deployment info
 Write-Host ""
@@ -161,11 +129,15 @@ Write-Host "======================================" -ForegroundColor Cyan
 Write-Host "Deployment Complete!" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Repository: $RepoPath" -ForegroundColor White
-Write-Host "Branch: $Branch" -ForegroundColor White
 Write-Host "IIS Path: $IISPath" -ForegroundColor White
+Write-Host "Build Source: dist branch (latest)" -ForegroundColor White
 Write-Host ""
 
 $serverIP = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notmatch 'Loopback'} | Select-Object -First 1 -ExpandProperty IPAddress
 Write-Host "Visit your website: http://$serverIP" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Note: To deploy the latest changes:" -ForegroundColor Cyan
+Write-Host "1. Push your code to main branch" -ForegroundColor White
+Write-Host "2. Wait for GitHub Actions to build (check: https://github.com/yangzirui-lab/game-gallery/actions)" -ForegroundColor White
+Write-Host "3. Run this script again" -ForegroundColor White
 Write-Host ""

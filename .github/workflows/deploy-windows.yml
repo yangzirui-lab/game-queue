@@ -73,6 +73,8 @@ jobs:
 
       - name: Build frontend
         working-directory: ./web
+        env:
+          VITE_BASE_PATH: /
         run: npm run build
 
       - name: Deploy to dist branch
