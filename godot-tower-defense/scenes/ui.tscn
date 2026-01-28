@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://ui_scene"]
+[gd_scene load_steps=7 format=3 uid="uid://ui_scene"]
 
 [ext_resource type="Script" path="res://scripts/ui.gd" id="1"]
+[ext_resource type="FontFile" path="res://fonts/NotoSansSC-Regular.ttf" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="panel_style"]
 bg_color = Color(0.1, 0.1, 0.15, 0.85)
@@ -88,6 +89,7 @@ alignment = 1
 [node name="MoneyLabel" type="Label" parent="TopLeftPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 18
 text = "金币: $200"
 horizontal_alignment = 1
@@ -95,6 +97,7 @@ horizontal_alignment = 1
 [node name="LivesLabel" type="Label" parent="TopLeftPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 18
 text = "生命: 20"
 horizontal_alignment = 1
@@ -113,6 +116,7 @@ theme_override_styles/panel = SubResource("panel_style")
 [node name="WaveLabel" type="Label" parent="WavePanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 24
 text = "波次 1/10"
 horizontal_alignment = 1
@@ -138,6 +142,7 @@ custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
@@ -151,6 +156,7 @@ custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
@@ -164,6 +170,7 @@ custom_minimum_size = Vector2(240, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.3, 1, 0.8, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
@@ -195,6 +202,7 @@ alignment = 1
 [node name="Title" type="Label" parent="GameOverPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 32
 text = "DEFEATED"
 horizontal_alignment = 1
@@ -203,6 +211,7 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")

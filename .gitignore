@@ -23,3 +23,6 @@ web/.env.local
 # 部署文档（包含敏感信息，不纳入版本控制）
 DEPLOYMENT-LINUX.md
 DEPLOYMENT*.md
+
+# Godot编辑器
+godot-editor/
