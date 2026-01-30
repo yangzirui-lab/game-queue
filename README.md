@@ -2,12 +2,16 @@
 
 一个现代化的游戏收藏管理应用。
 
+## 项目结构
+
+- **本仓库**: 前端代码 (Vue + Vite)
+- **后端仓库**: [degenerates-backend](https://github.com/yangzirui-lab/degenerates-backend)
+
 ## 本地开发
 
 ### 前置要求
 
 - Node.js 20+
-- Docker
 - Git
 
 ### 快速开始
@@ -15,17 +19,12 @@
 ```bash
 # 克隆仓库
 git clone https://github.com/yangzirui-lab/game-gallery.git
-cd game-gallery
+cd game-gallery/web
 
-# 启动后端
-cd backend
-cp .env.example .env
-# 编辑 .env 填入必要配置（可选）
-docker-compose up -d backend
-
-# 启动前端
-cd ../web
+# 安装依赖
 npm install
+
+# 启动开发服务器
 npm run dev
 ```
 
@@ -33,14 +32,10 @@ npm run dev
 
 ### 环境变量
 
-在 `backend/.env` 中配置：
+在 `web/.env` 中配置：
 
 ```bash
-PORT=8080
-BASE_URL=http://localhost
-FRONTEND_URL=http://localhost
-JWT_SECRET=your_secret_key
-
-# 可选
-STEAM_API_KEY=your_steam_api_key
+VITE_API_URL=http://localhost:8080/api
 ```
+
+> 注意：本地开发需要后端服务运行，请参考 [degenerates-backend](https://github.com/yangzirui-lab/degenerates-backend) 仓库。

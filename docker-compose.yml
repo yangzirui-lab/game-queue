@@ -1,5 +1,5 @@
-# Docker Compose 配置文件
-# 注意：生产环境不再使用此文件，前端静态文件由 degenerates-backend 的 nginx 服务
+# Docker Compose 配置文件 (仅用于本地开发)
+# 生产环境前端静态文件由 degenerates-backend 的 nginx 服务
 
 services:
   # 前端服务（本地开发模式）
@@ -22,8 +22,5 @@ services:
 # 2. 确保 degenerates-backend 在本地运行并监听 8080 端口
 # 3. 前端访问: http://localhost:5173
 # 4. API 访问: http://localhost:8080/api
-
-# 生产环境说明:
-# 前端静态文件部署到 /opt/game-gallery/web/dist
-# 由 degenerates-backend 的 nginx 统一服务
-# URL: https://degenerates.site
+#
+# 后端仓库: https://github.com/yangzirui-lab/degenerates-backend
