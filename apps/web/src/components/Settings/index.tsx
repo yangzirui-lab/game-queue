@@ -16,7 +16,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState('')
   const [steamUser, setSteamUser] = useState(getCurrentSteamUser())
 
-  const FIXED_OWNER = 'yangzirui-lab'
+  const FIXED_OWNER = 'catalyzer-dot'
   const FIXED_REPO = 'game-gallery'
 
   useEffect(() => {

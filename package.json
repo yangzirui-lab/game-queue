@@ -23,15 +23,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yangzirui-lab/game-gallery.git"
+    "url": "git+https://github.com/catalyzer-dot/game-gallery.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/yangzirui-lab/game-gallery/issues"
+    "url": "https://github.com/catalyzer-dot/game-gallery/issues"
   },
-  "homepage": "https://github.com/yangzirui-lab/game-gallery#readme",
+  "homepage": "https://github.com/catalyzer-dot/game-gallery#readme",
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",

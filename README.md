@@ -14,7 +14,7 @@ game-gallery/
 └── package.json          # Monorepo 配置
 ```
 
-**后端仓库**: [degenerates-backend](https://github.com/yangzirui-lab/degenerates-backend)
+**后端仓库**: [degenerates-backend](https://github.com/catalyzer-dot/degenerates-backend)
 
 ## 本地开发
 
@@ -27,7 +27,7 @@ game-gallery/
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yangzirui-lab/game-gallery.git
+git clone https://github.com/catalyzer-dot/game-gallery.git
 cd game-gallery
 
 # 安装依赖
@@ -47,7 +47,7 @@ npm run dev
 VITE_API_URL=http://localhost:8080/api
 ```
 
-> 注意：本地开发需要后端服务运行，请参考 [degenerates-backend](https://github.com/yangzirui-lab/degenerates-backend) 仓库。
+> 注意：本地开发需要后端服务运行，请参考 [degenerates-backend](https://github.com/catalyzer-dot/degenerates-backend) 仓库。
 
 ## 子项目
 
