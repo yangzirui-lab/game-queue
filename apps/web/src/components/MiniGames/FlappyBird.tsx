@@ -111,15 +111,55 @@ export const FlappyBird: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       )
     })
 
-    // 绘制小鸟
+    // 绘制小鸟 - 极简风格
+    const birdCenterX = BIRD_X + BIRD_SIZE / 2
+    const birdCenterY = birdRef.current.y
+
+    // 鸟身体（椭圆）
     ctx.fillStyle = '#fbbf24'
     ctx.beginPath()
-    ctx.arc(BIRD_X + BIRD_SIZE / 2, birdRef.current.y, BIRD_SIZE / 2, 0, Math.PI * 2)
+    ctx.ellipse(birdCenterX, birdCenterY, BIRD_SIZE / 2.2, BIRD_SIZE / 2.8, 0, 0, Math.PI * 2)
     ctx.fill()
     ctx.strokeStyle = '#d97706'
-    ctx.lineWidth = 3
+    ctx.lineWidth = 2.5
     ctx.stroke()
     ctx.closePath()
+
+    // 翅膀（椭圆，稍微倾斜）
+    ctx.fillStyle = '#f59e0b'
+    ctx.beginPath()
+    ctx.ellipse(birdCenterX - 2, birdCenterY + 3, BIRD_SIZE / 4.5, BIRD_SIZE / 3.5, -0.3, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = '#d97706'
+    ctx.lineWidth = 2
+    ctx.stroke()
+    ctx.closePath()
+
+    // 眼睛（白色底）
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath()
+    ctx.arc(birdCenterX + 6, birdCenterY - 3, 4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.closePath()
+
+    // 眼珠（黑色）
+    ctx.fillStyle = '#000000'
+    ctx.beginPath()
+    ctx.arc(birdCenterX + 7, birdCenterY - 3, 2, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.closePath()
+
+    // 嘴巴（三角形）
+    ctx.fillStyle = '#f97316'
+    ctx.beginPath()
+    ctx.moveTo(birdCenterX + BIRD_SIZE / 2.5, birdCenterY)
+    ctx.lineTo(birdCenterX + BIRD_SIZE / 1.5, birdCenterY - 2)
+    ctx.lineTo(birdCenterX + BIRD_SIZE / 1.5, birdCenterY + 2)
+    ctx.closePath()
+    ctx.fill()
+    ctx.strokeStyle = '#ea580c'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
 
     // 绘制分数（在游戏进行时）
     if (status === 'playing' && currentScore !== undefined) {
