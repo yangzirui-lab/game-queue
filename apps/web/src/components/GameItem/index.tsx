@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import classNames from 'classnames'
 import type { Game, GameStatus } from '../../types'
 import { Trash2, Loader2, Pin } from 'lucide-react'
+import { isGameReleased } from '../../utils/dateUtils'
 import styles from './index.module.scss'
 
 interface GameItemProps {
@@ -337,7 +338,7 @@ export const GameItem: React.FC<GameItemProps> = ({
 
               <div className={styles.gameMeta}>
                 <div className={styles.metaRow}>
-                  {game.comingSoon === true ? (
+                  {!isGameReleased(game.comingSoon ?? null, game.releaseDate ?? null) ? (
                     <span className={styles.metaRating}>
                       <span className={styles.unreleased}>尚未发售</span>
                     </span>
@@ -366,7 +367,7 @@ export const GameItem: React.FC<GameItemProps> = ({
                 </div>
                 {game.releaseDate && (
                   <div className={styles.releaseInfo}>
-                    {game.comingSoon === true ? (
+                    {!isGameReleased(game.comingSoon ?? null, game.releaseDate ?? null) ? (
                       <span className={styles.comingSoon}>预计发售: {game.releaseDate}</span>
                     ) : (
                       <span className={styles.releaseDate}>发布于 {game.releaseDate}</span>
