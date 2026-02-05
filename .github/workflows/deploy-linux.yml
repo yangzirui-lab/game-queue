@@ -9,6 +9,10 @@ on:
       - 'games/**'
   workflow_dispatch:
 
+concurrency:
+  group: "linux-deploy"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
