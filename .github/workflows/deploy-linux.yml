@@ -23,7 +23,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 构建前端并推送到dist分支
+      # 构建前端并推送到 dist 分支
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
