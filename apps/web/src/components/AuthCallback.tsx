@@ -23,6 +23,9 @@ function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
       // 从 URL 查询参数中获取认证数据
       const urlParams = new URLSearchParams(window.location.search)
 
+      // 调试日志：查看所有参数
+      console.log('[AuthCallback] URL params:', Object.fromEntries(urlParams.entries()))
+
       // 检查是否有错误
       const errorParam = urlParams.get('error')
       if (errorParam) {
@@ -38,49 +41,85 @@ function AuthCallback({ onSuccess, onError }: AuthCallbackProps) {
       // 这里假设后端通过 URL 参数返回 token 和用户信息
       // 或者后端可能直接返回 JSON 响应
 
-      // 方案 1: 从 URL 参数获取（如果后端通过重定向传递）
+      // 从 URL 参数获取认证数据
       const token = urlParams.get('token')
-      const userJson = urlParams.get('user')
 
-      if (token && userJson) {
-        try {
-          const user = JSON.parse(decodeURIComponent(userJson))
-          const authData: AuthResponse = { token, user }
-
-          const success = handleAuthCallback(authData)
-
-          if (success) {
-            // 登录成功，清除 URL 参数并通知父组件
-            window.history.replaceState({}, document.title, window.location.pathname)
-            if (onSuccess) {
-              onSuccess()
-            }
-          } else {
-            setError('Failed to process authentication data')
-            setIsProcessing(false)
-            if (onError) {
-              onError('Failed to process authentication data')
-            }
-          }
-        } catch (err) {
-          console.error('[AuthCallback] Error parsing user data:', err)
-          setError('Invalid authentication data')
-          setIsProcessing(false)
-          if (onError) {
-            onError('Invalid authentication data')
-          }
+      if (!token) {
+        setError('No token received')
+        setIsProcessing(false)
+        if (onError) {
+          onError('No token received')
         }
         return
       }
 
-      // 方案 2: 如果后端直接返回 JSON（需要从 fetch 获取）
-      // 这种情况下，后端应该在回调 URL 中包含完整的响应
-      // 或者前端需要再次请求后端 API 来获取认证信息
+      try {
+        let user
 
-      setError('No authentication data received')
-      setIsProcessing(false)
-      if (onError) {
-        onError('No authentication data received')
+        // 方案 1: user 是 JSON 字符串
+        const userJson = urlParams.get('user')
+        if (userJson) {
+          user = JSON.parse(decodeURIComponent(userJson))
+        } else {
+          // 方案 2: 用户信息是单独的参数
+          const userId = urlParams.get('user_id')
+          const steamId = urlParams.get('steam_id')
+          const username = urlParams.get('username')
+          const avatarUrl = urlParams.get('avatar_url')
+          const profileUrl = urlParams.get('profile_url')
+          const isActive = urlParams.get('is_active')
+          const lastLoginAt = urlParams.get('last_login_at')
+          const createdAt = urlParams.get('created_at')
+          const updatedAt = urlParams.get('updated_at')
+
+          if (userId && steamId && username) {
+            user = {
+              id: userId,
+              steam_id: steamId,
+              username: decodeURIComponent(username),
+              avatar_url: avatarUrl || '',
+              profile_url: profileUrl || '',
+              is_active: isActive === 'true',
+              last_login_at: lastLoginAt || '',
+              created_at: createdAt || '',
+              updated_at: updatedAt || '',
+            }
+          }
+        }
+
+        if (!user || !user.id) {
+          setError('Invalid user data received')
+          setIsProcessing(false)
+          if (onError) {
+            onError('Invalid user data received')
+          }
+          return
+        }
+
+        const authData: AuthResponse = { token, user }
+        const success = handleAuthCallback(authData)
+
+        if (success) {
+          // 登录成功，清除 URL 参数并通知父组件
+          window.history.replaceState({}, document.title, window.location.pathname)
+          if (onSuccess) {
+            onSuccess()
+          }
+        } else {
+          setError('Failed to process authentication data')
+          setIsProcessing(false)
+          if (onError) {
+            onError('Failed to process authentication data')
+          }
+        }
+      } catch (err) {
+        console.error('[AuthCallback] Error parsing authentication data:', err)
+        setError('Invalid authentication data')
+        setIsProcessing(false)
+        if (onError) {
+          onError('Invalid authentication data')
+        }
+        return
       }
     }
 
