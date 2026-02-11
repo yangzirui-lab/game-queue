@@ -5,11 +5,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  getLoginUrl,
+  login as loginService,
   logout as logoutService,
   isAuthenticated,
   getCurrentUser as getCurrentUserService,
-  autoRefreshToken,
 } from '@/services/auth'
 import type { User } from '@/types'
 
@@ -19,7 +18,7 @@ interface UseAuthResult {
   isAuthenticated: boolean
   user: User | null
   isLoading: boolean
-  login: (returnUrl?: string) => Promise<void>
+  login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   refreshUser: () => void
 }
@@ -44,34 +43,28 @@ function useAuth(): UseAuthResult {
    * 初始化认证状态
    */
   useEffect(() => {
-    const init = async () => {
-      // 尝试自动刷新 token
-      await autoRefreshToken()
-
-      // 加载用户信息
-      refreshUser()
-      setIsLoading(false)
-    }
-
-    init()
+    refreshUser()
+    setIsLoading(false)
   }, [refreshUser])
 
   /**
-   * 登录 - 跳转到 Steam 登录页面
+   * 登录 - 使用用户名和密码
+   * Session Token 会通过 Cookie 自动管理
    */
-  const login = useCallback(async (returnUrl?: string) => {
+  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true)
 
-    const loginUrlValue = await getLoginUrl({ returnUrl })
+    const user = await loginService({ username, password })
 
-    if (!loginUrlValue) {
-      console.error('[useAuth] Failed to get login URL')
+    if (!user) {
       setIsLoading(false)
-      return
+      return false
     }
 
-    // 重定向到 Steam 登录页面
-    window.location.href = loginUrlValue
+    setUser(user)
+    setAuthenticated(true)
+    setIsLoading(false)
+    return true
   }, [])
 
   /**

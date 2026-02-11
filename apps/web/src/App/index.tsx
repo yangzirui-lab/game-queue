@@ -1,12 +1,19 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import { GameItem } from '../components/GameItem'
 import { SearchBar, type SearchResult } from '../components/SearchBar'
-import type { Game, GameStatus } from '../types'
+import type { Game } from '../types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SettingsIcon, Loader2, Play, Bookmark, CheckCircle, Library, Sparkles } from 'lucide-react'
-import { githubService } from '../services/github'
+import { gameService } from '../services/game'
+import { userGameService } from '../services/userGame'
 import { steamService } from '../services/steam'
+import type { GameStatus } from '../types'
+import {
+  mergeGameData,
+  toCreateGameRequest,
+  extractAppIdFromSteamUrl,
+} from '../utils/gameDataMapper'
 import styles from './index.module.scss'
 
 // 导入自定义 hooks
@@ -26,7 +33,6 @@ const SteamSearch = lazy(() =>
 const Settings = lazy(() =>
   import('../components/Settings').then((module) => ({ default: module.Settings }))
 )
-const AuthCallback = lazy(() => import('../components/AuthCallback'))
 
 function App() {
   // 状态管理
@@ -38,71 +44,66 @@ function App() {
   const [mainTab, setMainTab] = useState<'steamgames' | 'playground'>('steamgames')
   const [activeTab, setActiveTab] = useState<'playing' | 'queueing' | 'completion'>('playing')
 
+  // 分页状态
+  const [playingPage, setPlayingPage] = useState(1)
+  const [queueingPage, setQueueingPage] = useState(1)
+  const [completionPage, setCompletionPage] = useState(1)
+  const [hasMorePlaying, setHasMorePlaying] = useState(false)
+  const [hasMoreQueueing, setHasMoreQueueing] = useState(false)
+  const [hasMoreCompletion, setHasMoreCompletion] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
   // 使用自定义 hooks
   const { toast, showToast } = useToast()
   const { highlightId, setHighlightId } = useHighlight()
   const groupedGames = useGamesGrouping(games)
   const searchResults = useGameSearch(games, searchTerm)
 
+  // IntersectionObserver ref
+  const observerTarget = useRef<HTMLDivElement>(null)
+
   // 定时刷新游戏信息
   useGameRefresh(games, setGames)
 
-  // Fetch games on mount
-  useEffect(() => {
-    const loadGames = async () => {
-      // Happy Path: GitHub 未配置
-      if (!githubService.isConfigured()) {
-        setShowSettings(true)
-        return
-      }
+  // 加载指定状态的游戏
+  const loadGamesByStatus = async (status: GameStatus, page: number = 1) => {
+    const result = await userGameService.getUserGames({
+      status,
+      page,
+      page_size: 20,
+    })
 
+    // Happy Path: 获取失败或未登录
+    if (!result) {
+      return { games: [], hasMore: false }
+    }
+
+    // 转换为前端格式
+    const games = mergeGameData(result.data, null)
+    return { games, hasMore: result.pagination.has_next }
+  }
+
+  // 初始化：加载所有状态的第一页
+  useEffect(() => {
+    const loadAllGames = async () => {
       setIsLoading(true)
 
-      const data = await githubService.fetchGames()
+      const [playingResult, queueingResult, completionResult] = await Promise.all([
+        loadGamesByStatus('playing', 1),
+        loadGamesByStatus('queueing', 1),
+        loadGamesByStatus('completion', 1),
+      ])
 
-      // Happy Path: 加载失败
-      if (!data) {
-        showToast('加载游戏失败。请检查 GitHub 配置。')
-        setShowSettings(true)
-        setIsLoading(false)
-        return
-      }
+      const allGames = [...playingResult.games, ...queueingResult.games, ...completionResult.games]
 
-      // 数据迁移：将 pending 状态迁移为 queueing
-      const hasPendingGames = data.games.some((g: Game) => (g.status as string) === 'pending')
-
-      if (hasPendingGames) {
-        console.log('Migrating pending games to queueing...')
-        const migratedGames = data.games.map((g: Game) =>
-          (g.status as string) === 'pending' ? { ...g, status: 'queueing' as GameStatus } : g
-        )
-
-        // 保存迁移后的数据
-        const updatedGames = await githubService.updateGames(
-          { games: migratedGames },
-          'Migrate pending status to queueing'
-        )
-
-        // Happy Path: 保存失败
-        if (!updatedGames) {
-          showToast('数据迁移失败')
-          setGames(data.games) // 使用未迁移的数据
-          setIsLoading(false)
-          return
-        }
-
-        setGames(updatedGames)
-        showToast('数据已自动迁移：pending → queueing')
-        console.log('Migration completed')
-      } else {
-        setGames(data.games)
-      }
-
+      setGames(allGames)
+      setHasMorePlaying(playingResult.hasMore)
+      setHasMoreQueueing(queueingResult.hasMore)
+      setHasMoreCompletion(completionResult.hasMore)
       setIsLoading(false)
     }
 
-    loadGames()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadAllGames()
   }, [])
 
   // 以下 useEffect 已被提取到自定义 hooks 中：
@@ -139,56 +140,104 @@ function App() {
     comingSoon?: boolean,
     isEarlyAccess?: boolean
   ) => {
+    // Happy Path: 游戏已存在
     const existing = games.find((g) => g.name.toLowerCase() === name.toLowerCase())
     if (existing) {
       showToast(`"${name}" 已经在队列中！`)
       setHighlightId(existing.id)
-      // 重复的游戏仍然算作成功，因为游戏已存在，只是不需要再添加
       return
     }
 
-    const newGame: Game = {
-      id: Date.now().toString(),
-      name,
-      status: 'queueing',
-      addedAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-      steamUrl,
-      coverImage,
-      positivePercentage,
-      totalReviews,
-      releaseDate,
-      comingSoon,
-      isEarlyAccess,
+    // 从 steamUrl 中提取 appId
+    const appId = extractAppIdFromSteamUrl(steamUrl)
+    if (!appId) {
+      showToast('无效的 Steam URL')
+      return
     }
 
-    // 使用 concurrentUpdateGames 确保在添加时获取最新数据，避免覆盖他人更改
-    const finalGames = await githubService.concurrentUpdateGames(
-      (currentGames) => {
-        // 再次检查是否已存在（防止并发添加）
-        const duplicate = currentGames.find((g) => g.name.toLowerCase() === name.toLowerCase())
-        if (duplicate) {
-          return currentGames // 游戏已存在，返回原列表不修改
-        }
-        return [newGame, ...currentGames]
-      },
-      `Add game via web: ${name} (${steamUrl.split('/').pop()})`
-    )
+    // 1. 尝试直接使用 app_id 添加到用户库
+    const addResult = await userGameService.addUserGame({
+      app_id: appId,
+      status: 'queueing',
+      is_pinned: false,
+    })
 
-    // Happy Path: 添加失败
-    if (!finalGames) {
+    let gameId: string
+
+    // 2. 如果游戏不存在数据库，先创建游戏
+    if (addResult && 'error' in addResult && addResult.error === 'game_not_found') {
+      const createGameParams = toCreateGameRequest({
+        appId,
+        name,
+        steamUrl,
+        coverImage,
+        type: 'game',
+        positivePercentage,
+        totalReviews,
+        releaseDate,
+        comingSoon,
+        isEarlyAccess,
+      })
+
+      const createdGame = await gameService.createGame(createGameParams)
+
+      // Happy Path: 创建游戏失败
+      if (!createdGame) {
+        showToast('创建游戏失败')
+        return
+      }
+
+      // 3. 创建成功后，再添加到用户库
+      const addResult2 = await userGameService.addUserGame({
+        app_id: appId,
+        status: 'queueing',
+        is_pinned: false,
+      })
+
+      if (!addResult2 || 'error' in addResult2) {
+        showToast('添加游戏到库失败')
+        return
+      }
+
+      gameId = createdGame.id
+    } else if (!addResult || 'error' in addResult) {
+      // Happy Path: 添加失败
       showToast('添加游戏失败')
       return
+    } else {
+      gameId = addResult.game_id
     }
 
-    // 检查游戏是否真的添加成功（可能因为重复而未添加）
-    const gameAdded = finalGames.some((g) => g.id === newGame.id)
-    if (!gameAdded) {
-      showToast(`"${name}" 已经在队列中！`)
+    // 4. 获取完整的游戏信息
+    const backendGame = await gameService.getGame(gameId)
+
+    // Happy Path: 获取游戏信息失败
+    if (!backendGame) {
+      showToast('获取游戏信息失败')
       return
     }
 
-    setGames(finalGames)
+    // 更新本地状态
+    const newGame: Game = {
+      id: backendGame.id,
+      name: backendGame.name,
+      status: 'queueing',
+      isPinned: false,
+      addedAt: backendGame.created_at,
+      lastUpdated: backendGame.updated_at,
+      steamUrl: backendGame.steam_url,
+      coverImage: backendGame.capsule_image,
+      positivePercentage: positivePercentage,
+      totalReviews: totalReviews,
+      chinesePositivePercentage: undefined,
+      chineseTotalReviews: undefined,
+      releaseDate: backendGame.release_date ?? backendGame.release_date_text,
+      comingSoon: comingSoon ?? backendGame.categories?.includes('Coming Soon'),
+      isEarlyAccess: isEarlyAccess ?? backendGame.categories?.includes('Early Access'),
+      genres: backendGame.genres?.map((name) => ({ id: name, description: name })),
+    }
+
+    setGames([newGame, ...games])
     showToast(`从 Steam 添加了 "${name}"`)
     setHighlightId(newGame.id)
 
@@ -206,13 +255,7 @@ function App() {
       return
     }
 
-    const match = steamUrl.match(/\/app\/(\d+)/)
-    if (!match) {
-      return
-    }
-
-    const appId = parseInt(match[1])
-    console.log(`正在获取 ${name} 的信息...`)
+    // appId 已经在上面定义过了，这里直接使用
 
     const [reviews, releaseInfo] = await Promise.all([
       steamService.getGameReviews({ appId }),
@@ -231,7 +274,19 @@ function App() {
       return
     }
 
-    // 更新本地状态
+    // 注意：后端不支持存储好评率字段，只更新后端支持的字段
+    const updatedBackendGame = await gameService.updateGame(newGame.id, {
+      release_date: releaseInfo.releaseDate ?? newGame.releaseDate,
+      coming_soon: releaseInfo.comingSoon ?? newGame.comingSoon,
+      is_early_access: releaseInfo.isEarlyAccess ?? newGame.isEarlyAccess,
+    })
+
+    // Happy Path: 更新失败（不影响主流程，已经添加成功了）
+    if (!updatedBackendGame) {
+      // 即使后端更新失败，也继续更新本地状态
+    }
+
+    // 更新本地状态（包括好评率数据，仅保存在本地）
     setGames((prevGames) =>
       prevGames.map((g) => {
         if (g.id === newGame.id) {
@@ -239,40 +294,16 @@ function App() {
             ...g,
             positivePercentage: reviews.positivePercentage ?? positivePercentage,
             totalReviews: reviews.totalReviews ?? totalReviews,
-            releaseDate: releaseInfo.releaseDate ?? g.releaseDate,
-            comingSoon: releaseInfo.comingSoon ?? g.comingSoon,
-            isEarlyAccess: releaseInfo.isEarlyAccess ?? g.isEarlyAccess,
+            chinesePositivePercentage: reviews.chinesePositivePercentage ?? undefined,
+            chineseTotalReviews: reviews.chineseTotalReviews ?? undefined,
+            releaseDate: releaseInfo.releaseDate ?? newGame.releaseDate,
+            comingSoon: releaseInfo.comingSoon ?? newGame.comingSoon,
+            isEarlyAccess: releaseInfo.isEarlyAccess ?? newGame.isEarlyAccess,
+            lastUpdated: new Date().toISOString(),
           }
         }
         return g
       })
-    )
-
-    // 保存更新到 GitHub
-    const updatedGames = await githubService.concurrentUpdateGames((currentGames) => {
-      return currentGames.map((g) => {
-        if (g.id === newGame.id) {
-          return {
-            ...g,
-            positivePercentage: reviews.positivePercentage ?? positivePercentage,
-            totalReviews: reviews.totalReviews ?? totalReviews,
-            releaseDate: releaseInfo.releaseDate ?? g.releaseDate,
-            comingSoon: releaseInfo.comingSoon ?? g.comingSoon,
-            isEarlyAccess: releaseInfo.isEarlyAccess ?? g.isEarlyAccess,
-          }
-        }
-        return g
-      })
-    }, `Update game via web: ${name}`)
-
-    // Happy Path: 保存失败（不影响主流程，已经添加成功了）
-    if (!updatedGames) {
-      console.error(`保存 ${name} 信息到 GitHub 失败`)
-      return
-    }
-
-    console.log(
-      `已获取并保存 ${name} 的信息: 好评率 ${reviews.positivePercentage}%, 发布日期 ${releaseInfo.releaseDate}, 抢先体验 ${releaseInfo.isEarlyAccess}`
     )
   }
 
@@ -283,19 +314,36 @@ function App() {
       return
     }
 
-    const finalGames = await githubService.concurrentUpdateGames((currentGames) => {
-      return currentGames.map((g) =>
-        g.id === id ? { ...g, ...updates, lastUpdated: new Date().toISOString() } : g
-      )
-    }, `Update game via web: ${game.name}`)
+    // 只有状态或置顶字段发生变化时才调用更新接口
+    if (!updates.status && updates.isPinned === undefined) {
+      return
+    }
+
+    // 更新用户游戏状态
+    const result = await userGameService.updateUserGame(id, {
+      status: updates.status,
+      is_pinned: updates.isPinned,
+    })
 
     // Happy Path: 更新失败
-    if (!finalGames) {
+    if (!result) {
       showToast('更新游戏失败')
       return
     }
 
-    setGames(finalGames)
+    // 更新本地状态
+    setGames((prevGames) =>
+      prevGames.map((g) =>
+        g.id === id
+          ? {
+              ...g,
+              ...(updates.status && { status: updates.status }),
+              ...(updates.isPinned !== undefined && { isPinned: updates.isPinned }),
+              lastUpdated: new Date().toISOString(),
+            }
+          : g
+      )
+    )
   }
 
   const handleDeleteGame = async (id: string) => {
@@ -305,17 +353,17 @@ function App() {
       return
     }
 
-    const finalGames = await githubService.concurrentUpdateGames((currentGames) => {
-      return currentGames.filter((g) => g.id !== id)
-    }, `Remove game via web: ${game.name}`)
+    // 删除游戏
+    const success = await gameService.deleteGame(id)
 
     // Happy Path: 删除失败
-    if (!finalGames) {
+    if (!success) {
       showToast('删除游戏失败')
       return
     }
 
-    setGames(finalGames)
+    // 更新本地状态
+    setGames((prevGames) => prevGames.filter((g) => g.id !== id))
     showToast(`移除了 "${game.name}"`)
   }
 
@@ -326,27 +374,17 @@ function App() {
       return
     }
 
+    // 注意：后端暂未实现置顶功能的独立接口
     const newPinnedState = !game.isPinned
 
-    const finalGames = await githubService.concurrentUpdateGames(
-      (currentGames) => {
-        return currentGames.map((g) =>
-          g.id === id
-            ? { ...g, isPinned: newPinnedState, lastUpdated: new Date().toISOString() }
-            : g
-        )
-      },
-      `${newPinnedState ? 'Pin' : 'Unpin'} game via web: ${game.name}`
+    showToast('置顶功能暂未实现，请联系后端开发')
+
+    // 临时方案：仅在前端更新状态（页面刷新后会丢失）
+    setGames((prevGames) =>
+      prevGames.map((g) =>
+        g.id === id ? { ...g, isPinned: newPinnedState, lastUpdated: new Date().toISOString() } : g
+      )
     )
-
-    // Happy Path: 操作失败
-    if (!finalGames) {
-      showToast('操作失败')
-      return
-    }
-
-    setGames(finalGames)
-    showToast(newPinnedState ? `已置顶 "${game.name}"` : `已取消置顶 "${game.name}"`)
   }
 
   const handleSearch = (term: string) => {
@@ -362,49 +400,106 @@ function App() {
   const handleSettingsClose = async () => {
     setShowSettings(false)
 
-    // Happy Path: GitHub 未配置
-    if (!githubService.isConfigured()) {
-      return
-    }
+    // 重新加载游戏数据（如果用户刚登录）
+    const [playingResult, queueingResult, completionResult] = await Promise.all([
+      loadGamesByStatus('playing', 1),
+      loadGamesByStatus('queueing', 1),
+      loadGamesByStatus('completion', 1),
+    ])
 
-    // 重新加载游戏数据（如果配置已更新）
-    const data = await githubService.fetchGames()
+    const allGames = [...playingResult.games, ...queueingResult.games, ...completionResult.games]
 
-    // Happy Path: 加载失败
-    if (!data) {
-      console.error('Failed to reload games after settings change')
-      return
-    }
-
-    setGames(data.games)
+    setGames(allGames)
+    setPlayingPage(1)
+    setQueueingPage(1)
+    setCompletionPage(1)
+    setHasMorePlaying(playingResult.hasMore)
+    setHasMoreQueueing(queueingResult.hasMore)
+    setHasMoreCompletion(completionResult.hasMore)
   }
 
-  // 检查是否是回调页面
-  const isCallbackPage = window.location.pathname === '/callback'
+  // 加载更多游戏
+  const loadMoreGames = useCallback(
+    async (status: GameStatus) => {
+      // 防止重复加载
+      if (isLoadingMore) {
+        return
+      }
 
-  // 处理 Steam 登录回调
-  const handleAuthSuccess = () => {
-    // 清除 URL 并跳转到主页
-    window.history.replaceState({}, document.title, '/')
-    showToast('登录成功！')
-    // 强制刷新页面状态
-    window.location.reload()
-  }
+      let currentPage: number
+      let setPage: (page: number) => void
+      let setHasMore: (hasMore: boolean) => void
+      let hasMore: boolean
 
-  const handleAuthError = (error: string) => {
-    // 清除 URL 并跳转到主页
-    window.history.replaceState({}, document.title, '/')
-    showToast(`登录失败: ${error}`)
-  }
+      if (status === 'playing') {
+        currentPage = playingPage
+        setPage = setPlayingPage
+        setHasMore = setHasMorePlaying
+        hasMore = hasMorePlaying
+      } else if (status === 'queueing') {
+        currentPage = queueingPage
+        setPage = setQueueingPage
+        setHasMore = setHasMoreQueueing
+        hasMore = hasMoreQueueing
+      } else {
+        currentPage = completionPage
+        setPage = setCompletionPage
+        setHasMore = setHasMoreCompletion
+        hasMore = hasMoreCompletion
+      }
 
-  // 如果是回调页面，显示 AuthCallback 组件
-  if (isCallbackPage) {
-    return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <AuthCallback onSuccess={handleAuthSuccess} onError={handleAuthError} />
-      </Suspense>
+      // 如果没有更多数据，不加载
+      if (!hasMore) {
+        return
+      }
+
+      setIsLoadingMore(true)
+
+      try {
+        const nextPage = currentPage + 1
+        const result = await loadGamesByStatus(status, nextPage)
+
+        setGames((prevGames) => [...prevGames, ...result.games])
+        setPage(nextPage)
+        setHasMore(result.hasMore)
+      } catch (error) {
+        console.error('加载更多游戏失败:', error)
+      } finally {
+        setIsLoadingMore(false)
+      }
+    },
+    [
+      isLoadingMore,
+      playingPage,
+      queueingPage,
+      completionPage,
+      hasMorePlaying,
+      hasMoreQueueing,
+      hasMoreCompletion,
+    ]
+  )
+
+  // IntersectionObserver 监听滚动到底部
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          loadMoreGames(activeTab)
+        }
+      },
+      { threshold: 0.1 }
     )
-  }
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current)
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current)
+      }
+    }
+  }, [activeTab, isLoadingMore, loadMoreGames])
 
   return (
     <div className={styles.app}>
@@ -510,25 +605,36 @@ function App() {
             <div className={styles.gameList}>
               <AnimatePresence mode="wait">
                 {groupedGames[activeTab].length > 0 ? (
-                  groupedGames[activeTab].map((game) => (
-                    <motion.div
-                      key={game.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3 }}
-                      className={styles.gameItemWrapper}
-                    >
-                      <GameItem
-                        game={game}
-                        onUpdate={handleUpdateGame}
-                        onDelete={handleDeleteGame}
-                        onPin={handlePinGame}
-                        isHighlighted={highlightId === game.id}
-                        onShowToast={showToast}
-                      />
-                    </motion.div>
-                  ))
+                  <>
+                    {groupedGames[activeTab].map((game) => (
+                      <motion.div
+                        key={game.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3 }}
+                        className={styles.gameItemWrapper}
+                      >
+                        <GameItem
+                          game={game}
+                          onUpdate={handleUpdateGame}
+                          onDelete={handleDeleteGame}
+                          onPin={handlePinGame}
+                          isHighlighted={highlightId === game.id}
+                          onShowToast={showToast}
+                        />
+                      </motion.div>
+                    ))}
+                    {/* 加载触发器 */}
+                    <div ref={observerTarget} className={styles.loadMoreTrigger} />
+                    {/* 加载状态提示 */}
+                    {isLoadingMore && (
+                      <div className={styles.loadingMore}>
+                        <Loader2 className="animate-spin" size={24} />
+                        <span>加载中...</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <motion.div
                     key="empty"

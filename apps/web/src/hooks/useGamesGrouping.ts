@@ -6,9 +6,9 @@ import type { Game, GameStatus } from '../types'
  *
  * 功能：
  * - 按状态分组（playing, queueing, completion）
- * - 每组内按置顶状态和最后更新时间排序
+ * - 每组内按置顶状态和添加时间排序
  *   - 置顶的游戏排在前面
- *   - 相同置顶状态的游戏按最后更新时间倒序排列
+ *   - 相同置顶状态的游戏按添加时间倒序排列（新添加的在前）
  */
 function useGamesGrouping(games: Game[]): {
   playing: Game[]
@@ -21,8 +21,8 @@ function useGamesGrouping(games: Game[]): {
       if (a.isPinned && !b.isPinned) return -1
       if (!a.isPinned && b.isPinned) return 1
 
-      // 相同置顶状态，按最后更新时间倒序
-      return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+      // 相同置顶状态，按添加时间倒序（新添加的在前）
+      return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
     }
 
     const filterAndSort = (status: GameStatus) =>

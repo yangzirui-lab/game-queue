@@ -149,6 +149,39 @@
         }
       }
 
+      .userProfile {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
+        border: 1px solid rgba(102, 192, 244, 0.2);
+        border-radius: 12px;
+
+        @media (max-width: 480px) {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+
+      .userInfo {
+        flex: 1;
+
+        .username {
+          color: #fff;
+          font-size: 1.125rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          @media (max-width: 480px) {
+            justify-content: center;
+          }
+        }
+      }
+
       .btnLogout {
         padding: 0.75rem 1.125rem;
         background: rgba(255, 68, 68, 0.15);
@@ -183,6 +216,28 @@
           width: 100%;
           justify-content: center;
         }
+      }
+
+      .loginForm {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .loginInfo {
+        color: #aaa;
+        font-size: 0.9rem;
+        line-height: 1.6;
+
+        p {
+          margin: 0.25rem 0;
+        }
+      }
+
+      .inputGroup {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
       }
 
       .steamLoginContainer {

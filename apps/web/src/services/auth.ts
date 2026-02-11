@@ -1,100 +1,25 @@
 /**
  * 认证服务
- * 提供 Steam 登录、登出、Token 管理等功能
+ * 使用 Cookie-based Session Token 认证
+ * 提供密码登录、登出、Token 管理等功能
  */
 
-import { AUTH_LOGIN_API, AUTH_REFRESH_API, AUTH_LOGOUT_API } from '@/constants/api'
-import type { User, AuthResponse, LoginUrlResponse, RefreshTokenResponse } from '@/types'
+import { AUTH_LOGIN_API, AUTH_LOGOUT_API } from '@/constants/api'
+import type { User, AuthResponse, LoginRequest } from '@/types'
 
 // ==================== Constants ====================
 
-const TOKEN_KEY = 'auth_token'
+const TOKEN_KEY = 'session_token'
 const USER_KEY = 'auth_user'
 
 // ==================== Types ====================
 
-interface GetLoginUrlRequest {
-  returnUrl?: string
+interface ApiErrorResponse {
+  error: string
+  message: string
 }
 
-interface ApiResponse<T> {
-  data: T
-}
-
-// ==================== Helper Functions ====================
-
-/**
- * 解码 JWT token 获取 payload
- */
-function decodeJWT(token: string): Record<string, unknown> | null {
-  if (!token || token.trim() === '') {
-    return null
-  }
-
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) {
-      return null
-    }
-
-    const base64Url = parts[1]
-    if (!base64Url) {
-      return null
-    }
-
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-
-    return JSON.parse(jsonPayload) as Record<string, unknown>
-  } catch (error) {
-    console.error('[Auth] Failed to decode JWT:', error)
-    return null
-  }
-}
-
-/**
- * 检查 token 是否过期
- */
-function isTokenExpired(token: string): boolean {
-  const decoded = decodeJWT(token)
-
-  if (!decoded) {
-    return true
-  }
-
-  if (typeof decoded.exp !== 'number') {
-    return true
-  }
-
-  const currentTime = Math.floor(Date.now() / 1000)
-  return decoded.exp < currentTime
-}
-
-/**
- * 检查 token 是否需要刷新（剩余时间少于 1 小时）
- */
-function shouldRefreshToken(token: string): boolean {
-  const decoded = decodeJWT(token)
-
-  if (!decoded) {
-    return false
-  }
-
-  if (typeof decoded.exp !== 'number') {
-    return false
-  }
-
-  const currentTime = Math.floor(Date.now() / 1000)
-  const oneHour = 60 * 60
-  return decoded.exp - currentTime < oneHour
-}
-
-// ==================== Token Management ====================
+// ==================== User Management ====================
 
 /**
  * 保存认证信息到本地存储
@@ -112,25 +37,6 @@ function saveAuthData(token: string, user: User): void {
 
   localStorage.setItem(TOKEN_KEY, token)
   localStorage.setItem(USER_KEY, JSON.stringify(user))
-}
-
-/**
- * 获取保存的 token
- * @returns 有效的 token，如果不存在或已过期则返回 null
- */
-function getToken(): string | null {
-  const token = localStorage.getItem(TOKEN_KEY)
-
-  if (!token) {
-    return null
-  }
-
-  if (isTokenExpired(token)) {
-    clearAuthData()
-    return null
-  }
-
-  return token
 }
 
 /**
@@ -152,6 +58,13 @@ function getUser(): User | null {
 }
 
 /**
+ * 获取保存的 token
+ */
+function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+/**
  * 清除认证信息
  */
 function clearAuthData(): void {
@@ -162,82 +75,39 @@ function clearAuthData(): void {
 // ==================== API Methods ====================
 
 /**
- * 获取 Steam 登录 URL
- * @param params - 可选的返回 URL
- * @returns 登录 URL，失败时返回 null
+ * 密码登录
+ * @param params - 登录参数（用户名和密码）
+ * @returns 登录成功返回用户信息，失败返回 null
  */
-async function getLoginUrl(params?: GetLoginUrlRequest): Promise<string | null> {
+async function login(params: LoginRequest): Promise<User | null> {
   try {
-    const url = new URL(AUTH_LOGIN_API)
-
-    if (params?.returnUrl) {
-      url.searchParams.append('return_url', params.returnUrl)
-    }
-
-    const response = await fetch(url.toString())
-
-    if (!response.ok) {
-      console.error(`[Auth] Failed to get login URL: ${response.status} ${response.statusText}`)
-      return null
-    }
-
-    const data = (await response.json()) as ApiResponse<LoginUrlResponse>
-
-    if (!data.data || !data.data.login_url) {
-      console.error('[Auth] Invalid response: missing login_url')
-      return null
-    }
-
-    return data.data.login_url
-  } catch (error) {
-    console.error('[Auth] Error getting login URL:', error)
-    return null
-  }
-}
-
-/**
- * 刷新 JWT token
- * @returns 新的 token，失败时返回 null
- */
-async function refreshToken(): Promise<string | null> {
-  const currentToken = getToken()
-
-  if (!currentToken) {
-    console.error('[Auth] Cannot refresh token: No token available')
-    return null
-  }
-
-  try {
-    const response = await fetch(AUTH_REFRESH_API, {
+    const response = await fetch(AUTH_LOGIN_API, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${currentToken}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(params),
     })
 
     if (!response.ok) {
-      console.error(`[Auth] Failed to refresh token: ${response.status} ${response.statusText}`)
-      clearAuthData()
+      const error = (await response.json()) as ApiErrorResponse
+      console.error(`[Auth] Login failed: ${response.status} - ${error.message}`)
       return null
     }
 
-    const data = (await response.json()) as ApiResponse<RefreshTokenResponse>
+    const data = (await response.json()) as AuthResponse
 
-    if (!data.data || !data.data.token) {
-      console.error('[Auth] Invalid response: missing token')
+    if (!data.data || !data.data.token || !data.data.user) {
+      console.error('[Auth] Invalid response: missing token or user')
       return null
     }
 
-    const newToken = data.data.token
-    const user = getUser()
-
-    if (user) {
-      saveAuthData(newToken, user)
-    }
-
-    return newToken
+    // 保存 token 和用户信息
+    saveAuthData(data.data.token, data.data.user)
+    console.log('[Auth] Login successful, token saved')
+    return data.data.user
   } catch (error) {
-    console.error('[Auth] Error refreshing token:', error)
+    console.error('[Auth] Error during login:', error)
     return null
   }
 }
@@ -249,93 +119,45 @@ async function refreshToken(): Promise<string | null> {
 async function logout(): Promise<boolean> {
   const token = getToken()
 
-  if (!token) {
-    clearAuthData()
-    return true
-  }
+  if (token) {
+    try {
+      const response = await fetch(AUTH_LOGOUT_API, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-  try {
-    const response = await fetch(AUTH_LOGOUT_API, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      console.error(`[Auth] Failed to logout: ${response.status} ${response.statusText}`)
+      if (!response.ok) {
+        console.error(`[Auth] Failed to logout: ${response.status} ${response.statusText}`)
+      }
+    } catch (error) {
+      console.error('[Auth] Error during logout:', error)
     }
-
-    clearAuthData()
-    return true
-  } catch (error) {
-    console.error('[Auth] Error during logout:', error)
-    clearAuthData()
-    return true
-  }
-}
-
-/**
- * 处理认证回调
- * 从后端回调返回的数据中提取并保存认证信息
- * 注意：此方法假设后端在回调后返回完整的 AuthResponse
- */
-function handleAuthCallback(authData: AuthResponse): boolean {
-  if (!authData.token || !authData.user) {
-    console.error('[Auth] Invalid auth data')
-    return false
   }
 
-  saveAuthData(authData.token, authData.user)
+  // 无论服务器响应如何，都清除本地认证信息
+  clearAuthData()
+  console.log('[Auth] Logout successful, token cleared')
   return true
 }
 
 /**
  * 检查是否已登录
+ * 通过本地是否有用户信息判断
+ * 注意：实际的认证状态由服务器 Cookie 决定
  */
 function isAuthenticated(): boolean {
-  return getToken() !== null
+  return getUser() !== null
 }
 
 /**
  * 获取当前登录用户
  */
 function getCurrentUser(): User | null {
-  if (!isAuthenticated()) {
-    return null
-  }
-
   return getUser()
-}
-
-/**
- * 自动刷新 token（如果需要）
- * 建议在应用启动时或定期调用
- */
-async function autoRefreshToken(): Promise<void> {
-  const token = getToken()
-
-  if (!token) {
-    return
-  }
-
-  if (shouldRefreshToken(token)) {
-    await refreshToken()
-  }
 }
 
 // ==================== Exports ====================
 
-export type { GetLoginUrlRequest }
-
-export {
-  getLoginUrl,
-  refreshToken,
-  logout,
-  handleAuthCallback,
-  isAuthenticated,
-  getCurrentUser,
-  getToken,
-  autoRefreshToken,
-  clearAuthData,
-}
+export { login, logout, isAuthenticated, getCurrentUser, getToken, clearAuthData }

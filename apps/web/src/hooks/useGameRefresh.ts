@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import type { Game } from '../types'
 import { steamService } from '../services/steam'
-import { githubService } from '../services/github'
+import { gameService } from '../services/game'
+import { extractAppIdFromSteamUrl } from '../utils/gameDataMapper'
 
 /**
  * 游戏信息定时刷新 Hook
@@ -10,12 +11,13 @@ import { githubService } from '../services/github'
  * - 延迟 2 秒后进行首次刷新（优先刷新缺少数据的游戏）
  * - 每 30 分钟自动刷新一次
  * - 从 Steam API 获取游戏的好评率、发布日期、发售状态(comingSoon)、抢先体验状态
- * - 更新后统一保存到 GitHub（使用并发安全的 concurrentUpdateGames）
+ * - 更新后保存到后端数据库（逐个调用 gameService.updateGame）
  * - 防止 API 限流（每个游戏之间延迟 1 秒）
  */
-function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): void {
+function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Game[]>>): void {
   // 使用 ref 保存最新的 games 状态，避免闭包陷阱
   const gamesRef = useRef(games)
+  const refreshedGameIds = useRef(new Set<string>())
 
   useEffect(() => {
     gamesRef.current = games
@@ -30,12 +32,6 @@ function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): 
       const currentGames = gamesRef.current
       if (currentGames.length === 0) return
 
-      console.log(
-        prioritizeMissing
-          ? '开始刷新游戏信息（包含所有游戏的发售状态和抢先体验状态）...'
-          : '开始刷新游戏好评率...'
-      )
-
       // 按优先级排序：缺少好评率的游戏优先
       let gamesToRefresh = [...currentGames]
       if (prioritizeMissing) {
@@ -48,16 +44,14 @@ function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): 
         })
       }
 
-      let hasAnyUpdate = false
+      const updatedGames: Game[] = []
 
       for (const game of gamesToRefresh) {
         if (!game.steamUrl) continue
 
         // 从 steamUrl 中提取 appId
-        const match = game.steamUrl.match(/\/app\/(\d+)/)
-        if (!match) continue
-
-        const appId = parseInt(match[1])
+        const appId = extractAppIdFromSteamUrl(game.steamUrl)
+        if (!appId) continue
 
         try {
           // 在首次刷新时，强制刷新所有游戏的发售状态和抢先体验状态
@@ -113,33 +107,40 @@ function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): 
               releaseInfo.releaseDate !== null ||
               releaseInfo.isEarlyAccess !== null)
           ) {
-            hasAnyUpdate = true
-
-            // 更新本地状态
-            onGamesUpdate(
-              gamesRef.current.map((g) => {
-                if (g.id === game.id) {
-                  // 使用最新的游戏状态，只更新好评率相关字段
-                  return {
-                    ...g,
-                    positivePercentage: reviews.positivePercentage ?? g.positivePercentage,
-                    totalReviews: reviews.totalReviews ?? g.totalReviews,
-                    chinesePositivePercentage:
-                      reviews.chinesePositivePercentage ?? g.chinesePositivePercentage,
-                    chineseTotalReviews: reviews.chineseTotalReviews ?? g.chineseTotalReviews,
-                    releaseDate: releaseInfo.releaseDate ?? g.releaseDate,
-                    comingSoon: releaseInfo.comingSoon ?? g.comingSoon,
-                    isEarlyAccess: releaseInfo.isEarlyAccess ?? g.isEarlyAccess,
-                    // 不更新 lastUpdated，保持原有排序
-                  }
-                }
-                return g
+            // 注意：后端不支持存储好评率字段（positive_percentage, total_reviews 等）
+            // 这些数据仅保存在前端本地状态中
+            // 只更新后端支持的字段：release_date, coming_soon, is_early_access
+            if (
+              releaseInfo.releaseDate !== game.releaseDate ||
+              releaseInfo.comingSoon !== game.comingSoon ||
+              releaseInfo.isEarlyAccess !== game.isEarlyAccess
+            ) {
+              const updatedBackendGame = await gameService.updateGame(game.id, {
+                release_date_text: releaseInfo.releaseDate ?? game.releaseDate,
               })
-            )
 
-            console.log(
-              `已更新 ${game.name} 的信息: 全球好评率 ${reviews.positivePercentage}% (${reviews.totalReviews}条), 中文好评率 ${reviews.chinesePositivePercentage}% (${reviews.chineseTotalReviews}条), 发布日期 ${releaseInfo.releaseDate}, 未发售 ${releaseInfo.comingSoon}, 抢先体验 ${releaseInfo.isEarlyAccess}`
-            )
+              // Happy Path: 更新失败，不影响好评率数据的本地更新
+              if (!updatedBackendGame) {
+                console.warn(`Failed to update backend for game ${game.id}`)
+              }
+            }
+
+            // 记录已更新的游戏（包括好评率数据，仅保存在本地）
+            const updatedGame: Game = {
+              ...game,
+              positivePercentage: reviews.positivePercentage ?? game.positivePercentage,
+              totalReviews: reviews.totalReviews ?? game.totalReviews,
+              chinesePositivePercentage:
+                reviews.chinesePositivePercentage ?? game.chinesePositivePercentage,
+              chineseTotalReviews: reviews.chineseTotalReviews ?? game.chineseTotalReviews,
+              releaseDate: releaseInfo.releaseDate ?? game.releaseDate,
+              comingSoon: releaseInfo.comingSoon ?? game.comingSoon,
+              isEarlyAccess: releaseInfo.isEarlyAccess ?? game.isEarlyAccess,
+              lastUpdated: new Date().toISOString(),
+            }
+
+            updatedGames.push(updatedGame)
+            refreshedGameIds.current.add(game.id)
           }
         } catch (err) {
           console.error(`刷新 ${game.name} 信息失败:`, err)
@@ -149,47 +150,21 @@ function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): 
         await new Promise((resolve) => setTimeout(resolve, 1000))
       }
 
-      console.log(
-        prioritizeMissing ? '游戏信息刷新完成（已刷新发售状态和抢先体验状态）' : '好评率刷新完成'
-      )
-
-      // 所有游戏刷新完成后，统一保存一次到 GitHub
-      if (!hasAnyUpdate) {
+      // 如果有游戏更新，更新本地状态
+      if (updatedGames.length === 0) {
         return
       }
 
-      const finalGames = await githubService.concurrentUpdateGames((remoteGames) => {
-        // 将最新的好评率数据合并到远程数据中
-        // 以远程数据为基准，只更新好评率相关字段
-        const updatedRemoteGames = remoteGames.map((remoteGame) => {
-          const localUpdate = gamesRef.current.find((g) => g.id === remoteGame.id)
-          if (localUpdate) {
-            // 如果本地有更新（好评率等），应用到远程数据
-            return {
-              ...remoteGame,
-              positivePercentage: localUpdate.positivePercentage,
-              totalReviews: localUpdate.totalReviews,
-              chinesePositivePercentage: localUpdate.chinesePositivePercentage,
-              chineseTotalReviews: localUpdate.chineseTotalReviews,
-              releaseDate: localUpdate.releaseDate,
-              comingSoon: localUpdate.comingSoon,
-              isEarlyAccess: localUpdate.isEarlyAccess,
-            }
-          }
-          return remoteGame
+      // 创建更新映射
+      const updatedGamesMap = new Map(updatedGames.map((g) => [g.id, g]))
+
+      // 使用函数式更新，确保使用最新的 games 状态
+      onGamesUpdate((prevGames: Game[]) =>
+        prevGames.map((g) => {
+          const updated = updatedGamesMap.get(g.id)
+          return updated || g
         })
-        return updatedRemoteGames
-      }, 'Update games info after refresh')
-
-      // Happy Path: 保存失败
-      if (!finalGames) {
-        console.error('保存游戏信息到 GitHub 失败')
-        return
-      }
-
-      // 更新本地状态以匹配远程
-      onGamesUpdate(finalGames)
-      console.log('已保存所有游戏信息到 GitHub')
+      )
     }
 
     // 延迟 2 秒后进行首次刷新，优先处理缺少好评率的游戏
@@ -204,6 +179,98 @@ function useGameRefresh(games: Game[], onGamesUpdate: (games: Game[]) => void): 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 监听新游戏加载，立即刷新未处理过的游戏
+  useEffect(() => {
+    const currentGames = gamesRef.current
+    const newGames = currentGames.filter(
+      (game) =>
+        !refreshedGameIds.current.has(game.id) &&
+        (game.positivePercentage === null ||
+          game.positivePercentage === undefined ||
+          game.totalReviews === null ||
+          game.totalReviews === undefined)
+    )
+
+    if (newGames.length === 0) return
+
+    // 先标记这些游戏为"正在处理"，防止重复刷新
+    const processingIds = new Set(newGames.map((g) => g.id))
+    processingIds.forEach((id) => refreshedGameIds.current.add(id))
+
+    const refreshNewGames = async () => {
+      const updatedGames: Game[] = []
+
+      for (const game of newGames) {
+        if (!game.steamUrl) continue
+
+        const appId = extractAppIdFromSteamUrl(game.steamUrl)
+        if (!appId) continue
+
+        try {
+          const [reviews, releaseInfo] = await Promise.all([
+            steamService.getGameReviews({ appId }),
+            steamService.getGameReleaseDate({ appId }),
+          ])
+
+          if (!reviews || !releaseInfo) {
+            console.warn(`Failed to fetch info for game ${appId}`)
+            continue
+          }
+
+          if (
+            reviews.positivePercentage !== null ||
+            reviews.totalReviews !== null ||
+            releaseInfo.releaseDate !== null ||
+            releaseInfo.isEarlyAccess !== null
+          ) {
+            // 更新后端（只更新发布日期）
+            if (
+              releaseInfo.releaseDate !== game.releaseDate ||
+              releaseInfo.comingSoon !== game.comingSoon ||
+              releaseInfo.isEarlyAccess !== game.isEarlyAccess
+            ) {
+              await gameService.updateGame(game.id, {
+                release_date_text: releaseInfo.releaseDate ?? game.releaseDate,
+              })
+            }
+
+            const updatedGame: Game = {
+              ...game,
+              positivePercentage: reviews.positivePercentage ?? game.positivePercentage,
+              totalReviews: reviews.totalReviews ?? game.totalReviews,
+              chinesePositivePercentage:
+                reviews.chinesePositivePercentage ?? game.chinesePositivePercentage,
+              chineseTotalReviews: reviews.chineseTotalReviews ?? game.chineseTotalReviews,
+              releaseDate: releaseInfo.releaseDate ?? game.releaseDate,
+              comingSoon: releaseInfo.comingSoon ?? game.comingSoon,
+              isEarlyAccess: releaseInfo.isEarlyAccess ?? game.isEarlyAccess,
+              lastUpdated: new Date().toISOString(),
+            }
+
+            updatedGames.push(updatedGame)
+          }
+        } catch (err) {
+          console.error(`刷新新游戏 ${game.name} 失败:`, err)
+        }
+
+        // 防止请求过快
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+
+      if (updatedGames.length > 0) {
+        const updatedGamesMap = new Map(updatedGames.map((g) => [g.id, g]))
+
+        // 使用函数式更新，确保使用最新的 games 状态
+        onGamesUpdate((prevGames: Game[]) => prevGames.map((g) => updatedGamesMap.get(g.id) || g))
+      }
+    }
+
+    // 延迟 500ms 后刷新新游戏（避免在列表快速滚动时频繁触发）
+    const timer = setTimeout(refreshNewGames, 500)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [games.length]) // 仅在游戏数量变化时触发
 }
 
 // ==================== Exports ====================
