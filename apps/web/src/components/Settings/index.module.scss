@@ -195,6 +195,12 @@
         font-size: 0.9rem;
         font-weight: 500;
         transition: all 0.2s;
+        line-height: 1;
+
+        svg {
+          flex-shrink: 0;
+          display: block;
+        }
         white-space: nowrap;
 
         &:hover {
@@ -435,6 +441,12 @@
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
+          line-height: 1;
+
+          svg {
+            flex-shrink: 0;
+            display: block;
+          }
 
           &:disabled {
             background: #555 !important;
