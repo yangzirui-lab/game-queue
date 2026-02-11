@@ -85,6 +85,9 @@ interface BackendGame {
   developers?: string[]
   publishers?: string[]
   metacritic_score?: number
+  positive_percentage?: number // Steam 好评率
+  total_reviews?: number // Steam 总评价数
+  is_early_access?: boolean // 是否抢先体验
   created_at: string
   updated_at: string
 }
@@ -157,6 +160,8 @@ interface UpdateGameRequest {
   release_date_text?: string
   coming_soon?: boolean
   is_early_access?: boolean
+  positive_percentage?: number
+  total_reviews?: number
 }
 
 interface UpdateGameResponse {

@@ -274,8 +274,10 @@ function App() {
       return
     }
 
-    // 注意：后端不支持存储好评率字段，只更新后端支持的字段
+    // 更新后端数据库（包括评论数据）
     const updatedBackendGame = await gameService.updateGame(newGame.id, {
+      positive_percentage: reviews.positivePercentage ?? positivePercentage,
+      total_reviews: reviews.totalReviews ?? totalReviews,
       release_date: releaseInfo.releaseDate ?? newGame.releaseDate,
       coming_soon: releaseInfo.comingSoon ?? newGame.comingSoon,
       is_early_access: releaseInfo.isEarlyAccess ?? newGame.isEarlyAccess,
@@ -286,7 +288,7 @@ function App() {
       // 即使后端更新失败，也继续更新本地状态
     }
 
-    // 更新本地状态（包括好评率数据，仅保存在本地）
+    // 更新本地状态
     setGames((prevGames) =>
       prevGames.map((g) => {
         if (g.id === newGame.id) {

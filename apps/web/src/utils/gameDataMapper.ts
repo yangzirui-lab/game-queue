@@ -25,13 +25,15 @@ function mergeGameData(
         lastUpdated: backendGame.updated_at,
         steamUrl: backendGame.steam_url,
         coverImage: backendGame.capsule_image,
-        positivePercentage: undefined,
-        totalReviews: undefined,
+        // 优先使用后端返回的数据（如果有）
+        positivePercentage: backendGame.positive_percentage ?? undefined,
+        totalReviews: backendGame.total_reviews ?? undefined,
         chinesePositivePercentage: undefined,
         chineseTotalReviews: undefined,
         releaseDate: backendGame.release_date ?? backendGame.release_date_text,
         comingSoon: backendGame.categories?.includes('Coming Soon'),
-        isEarlyAccess: backendGame.categories?.includes('Early Access'),
+        isEarlyAccess:
+          backendGame.is_early_access ?? backendGame.categories?.includes('Early Access'),
         genres: (backendGame.genres as string[] | undefined)?.map(
           (name: string): Genre => ({ id: name, description: name })
         ),
@@ -63,13 +65,15 @@ function mergeGameData(
       lastUpdated: backendGame.updated_at,
       steamUrl: backendGame.steam_url,
       coverImage: backendGame.capsule_image,
-      positivePercentage: undefined,
-      totalReviews: undefined,
+      // 优先使用后端返回的数据（如果有）
+      positivePercentage: backendGame.positive_percentage ?? undefined,
+      totalReviews: backendGame.total_reviews ?? undefined,
       chinesePositivePercentage: undefined,
       chineseTotalReviews: undefined,
       releaseDate: backendGame.release_date ?? backendGame.release_date_text,
       comingSoon: backendGame.categories?.includes('Coming Soon'),
-      isEarlyAccess: backendGame.categories?.includes('Early Access'),
+      isEarlyAccess:
+        backendGame.is_early_access ?? backendGame.categories?.includes('Early Access'),
       genres: (backendGame.genres as string[] | undefined)?.map(
         (name: string): Genre => ({ id: name, description: name })
       ),

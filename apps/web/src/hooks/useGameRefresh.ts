@@ -33,6 +33,7 @@ function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Ga
       if (currentGames.length === 0) return
 
       // 按优先级排序：缺少好评率的游戏优先
+      // 注意：现在后端已经返回了评论数据，只需要刷新那些后端也没有数据的游戏
       let gamesToRefresh = [...currentGames]
       if (prioritizeMissing) {
         gamesToRefresh = gamesToRefresh.sort((a, b) => {
@@ -107,19 +108,23 @@ function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Ga
               releaseInfo.releaseDate !== null ||
               releaseInfo.isEarlyAccess !== null)
           ) {
-            // 注意：后端不支持存储好评率字段（positive_percentage, total_reviews 等）
-            // 这些数据仅保存在前端本地状态中
-            // 只更新后端支持的字段：release_date, coming_soon, is_early_access
-            if (
+            // 更新后端数据库（包括评论数据）
+            const shouldUpdateBackend =
+              reviews.positivePercentage !== game.positivePercentage ||
+              reviews.totalReviews !== game.totalReviews ||
               releaseInfo.releaseDate !== game.releaseDate ||
               releaseInfo.comingSoon !== game.comingSoon ||
               releaseInfo.isEarlyAccess !== game.isEarlyAccess
-            ) {
+
+            if (shouldUpdateBackend) {
               const updatedBackendGame = await gameService.updateGame(game.id, {
+                positive_percentage: reviews.positivePercentage ?? game.positivePercentage,
+                total_reviews: reviews.totalReviews ?? game.totalReviews,
                 release_date_text: releaseInfo.releaseDate ?? game.releaseDate,
+                is_early_access: releaseInfo.isEarlyAccess ?? game.isEarlyAccess,
               })
 
-              // Happy Path: 更新失败，不影响好评率数据的本地更新
+              // Happy Path: 更新失败，不影响数据的本地更新
               if (!updatedBackendGame) {
                 console.warn(`Failed to update backend for game ${game.id}`)
               }
@@ -224,14 +229,20 @@ function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Ga
             releaseInfo.releaseDate !== null ||
             releaseInfo.isEarlyAccess !== null
           ) {
-            // 更新后端（只更新发布日期）
-            if (
+            // 更新后端数据库（包括评论数据）
+            const shouldUpdateBackend =
+              reviews.positivePercentage !== game.positivePercentage ||
+              reviews.totalReviews !== game.totalReviews ||
               releaseInfo.releaseDate !== game.releaseDate ||
               releaseInfo.comingSoon !== game.comingSoon ||
               releaseInfo.isEarlyAccess !== game.isEarlyAccess
-            ) {
+
+            if (shouldUpdateBackend) {
               await gameService.updateGame(game.id, {
+                positive_percentage: reviews.positivePercentage ?? game.positivePercentage,
+                total_reviews: reviews.totalReviews ?? game.totalReviews,
                 release_date_text: releaseInfo.releaseDate ?? game.releaseDate,
+                is_early_access: releaseInfo.isEarlyAccess ?? game.isEarlyAccess,
               })
             }
 
