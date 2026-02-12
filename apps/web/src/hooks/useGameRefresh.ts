@@ -8,11 +8,16 @@ import { extractAppIdFromSteamUrl } from '../utils/gameDataMapper'
  * 游戏信息定时刷新 Hook
  *
  * 功能：
- * - 延迟 2 秒后进行首次刷新（优先刷新缺少数据的游戏）
- * - 每 30 分钟自动刷新一次
+ * - 延迟 2 秒后进行首次刷新（只刷新缺少数据的游戏）
+ * - 后端有定时任务每 2 小时刷新一次，前端不再定期刷新已有数据的游戏
  * - 从 Steam API 获取游戏的好评率、发布日期、发售状态(comingSoon)、抢先体验状态
  * - 更新后保存到后端数据库（逐个调用 gameService.updateGame）
  * - 防止 API 限流（每个游戏之间延迟 1 秒）
+ *
+ * 刷新策略：
+ * - 已有完整数据的游戏：不刷新（由后端定时任务维护）
+ * - 缺少数据的游戏：立即刷新
+ * - 新添加的游戏：立即刷新
  */
 function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Game[]>>): void {
   // 使用 ref 保存最新的 games 状态，避免闭包陷阱
@@ -53,6 +58,22 @@ function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Ga
         // 从 steamUrl 中提取 appId
         const appId = extractAppIdFromSteamUrl(game.steamUrl)
         if (!appId) continue
+
+        // 如果游戏已有完整数据，跳过刷新（后端定时任务会维护）
+        const hasCompleteData =
+          game.positivePercentage !== null &&
+          game.positivePercentage !== undefined &&
+          game.totalReviews !== null &&
+          game.totalReviews !== undefined &&
+          game.releaseDate !== null &&
+          game.releaseDate !== undefined &&
+          game.isEarlyAccess !== null &&
+          game.isEarlyAccess !== undefined
+
+        if (hasCompleteData && !prioritizeMissing) {
+          console.log(`跳过刷新: ${game.name} (数据完整，由后端定时任务维护)`)
+          continue
+        }
 
         try {
           // 在首次刷新时，强制刷新所有游戏的发售状态和抢先体验状态
@@ -172,15 +193,12 @@ function useGameRefresh(games: Game[], onGamesUpdate: Dispatch<SetStateAction<Ga
       )
     }
 
-    // 延迟 2 秒后进行首次刷新，优先处理缺少好评率的游戏
+    // 延迟 2 秒后进行首次刷新，只刷新缺少数据的游戏
+    // 注意：不再设置定期刷新，因为后端有定时任务每 2 小时刷新一次
     const initialTimer = setTimeout(() => refreshReviews(true), 2000)
-
-    // 每 30 分钟刷新一次
-    const interval = setInterval(() => refreshReviews(false), 30 * 60 * 1000)
 
     return () => {
       clearTimeout(initialTimer)
-      clearInterval(interval)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
