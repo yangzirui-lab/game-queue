@@ -345,7 +345,8 @@ export const GameItem: React.FC<GameItemProps> = ({
                   ) : game.positivePercentage !== undefined &&
                     game.positivePercentage !== null &&
                     game.totalReviews !== undefined &&
-                    game.totalReviews !== null ? (
+                    game.totalReviews !== null &&
+                    game.totalReviews > 0 ? (
                     <span className={styles.metaRating}>
                       <span
                         className={classNames(styles.ratingPercentage, {

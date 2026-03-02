@@ -176,7 +176,9 @@ export const SteamSearch: React.FC<SteamSearchProps> = ({ onAddGame, onClose }) 
                 <div className={styles.gameInfo}>
                   <div className={styles.gameName}>{game.name}</div>
                   <div className={styles.gameMeta}>
-                    {game.positivePercentage !== null && game.totalReviews !== null ? (
+                    {game.positivePercentage !== null &&
+                    game.totalReviews !== null &&
+                    game.totalReviews > 0 ? (
                       <div className={styles.metaRating}>
                         <span
                           className={classNames(styles.ratingPercentage, {
