@@ -16,3 +16,7 @@
 ### 1. 任务完成后的行为
 
 完成任务后直接告知修改了哪些文件及主要变更，不创建 SUMMARY.md、CHECKLIST.md 等总结性文档，除非用户明确要求。
+
+### 2. 生成 Claude 相关内容前的规范
+
+生成任何与 Claude Code、Claude API、Anthropic SDK 相关的内容时，必须先通过 WebFetch 参考 https://code.claude.com/docs 获取最新文档。
